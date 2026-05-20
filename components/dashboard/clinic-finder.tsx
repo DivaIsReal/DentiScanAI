@@ -89,7 +89,7 @@ export function ClinicFinder() {
   }, [mapLoaded, clinics]);
 
   return (
-    <div className="glass rounded-2xl p-6">
+    <div className="glass rounded-2xl p-6 shadow-lg">
       <div className="flex items-center justify-between mb-5">
         <div>
           <h3 className="font-semibold flex items-center gap-2">
@@ -106,94 +106,99 @@ export function ClinicFinder() {
         </Badge>
       </div>
 
-      <div className="relative aspect-[16/8] rounded-2xl overflow-hidden mb-5 border border-cyan-500/10">
-        <div ref={mapRef} className="absolute inset-0" />
+      <div className="md:grid md:grid-cols-[1fr_360px] md:gap-4">
+        <div className="relative aspect-[16/8] md:aspect-auto md:min-h-[420px] rounded-2xl overflow-hidden mb-5 md:mb-0 border border-cyan-500/10">
+          <div ref={mapRef} className="absolute inset-0" />
 
-        {mapError ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-6 text-sm text-red-300 bg-slate-950/80">
-            <div className="font-semibold">Google Maps failed to load</div>
-            <div className="text-center">{mapError}</div>
+          {mapError ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-6 text-sm text-red-300 bg-slate-950/80">
+              <div className="font-semibold">Google Maps failed to load</div>
+              <div className="text-center">{mapError}</div>
+            </div>
+          ) : !mapLoaded ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-6 text-sm text-muted-foreground bg-slate-950/50">
+              <Loader2 className="w-5 h-5 animate-spin text-cyan-500" />
+              <div>Loading Google Maps…</div>
+            </div>
+          ) : null}
+
+          <div className="absolute bottom-3 left-3 glass-strong rounded-lg px-3 py-2 text-xs">
+            <span className="font-medium">Clinic Map</span>
+            <div className="text-muted-foreground">
+              {mapLoaded ? "Google Maps API is active" : "Awaiting map load"}
+            </div>
           </div>
-        ) : !mapLoaded ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-6 text-sm text-muted-foreground bg-slate-950/50">
+        </div>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-10 md:py-0">
             <Loader2 className="w-5 h-5 animate-spin text-cyan-500" />
-            <div>Loading Google Maps…</div>
           </div>
-        ) : null}
-
-        <div className="absolute bottom-3 left-3 glass-strong rounded-lg px-3 py-2 text-xs">
-          <span className="font-medium">Clinic Map</span>
-          <div className="text-muted-foreground">
-            {mapLoaded ? "Google Maps API is active" : "Awaiting map load"}
-          </div>
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="flex items-center justify-center py-10">
-          <Loader2 className="w-5 h-5 animate-spin text-cyan-500" />
-        </div>
-      ) : (
-        <div className="space-y-3 max-h-[400px] overflow-y-auto scrollbar-thin pr-1">
-          {clinics.map((clinic, i) => (
-            <motion.button
-              key={clinic.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              onClick={() => setSelected(clinic.id)}
-              className={`w-full text-left rounded-xl p-4 border transition-all ${
-                selected === clinic.id
-                  ? "border-cyan-500/50 bg-cyan-500/5"
-                  : "border-border/50 hover:border-cyan-500/30 hover:bg-accent/30"
-              }`}
-            >
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold truncate">{clinic.name}</div>
-                  <div className="text-xs text-muted-foreground truncate flex items-center gap-1 mt-0.5">
-                    <MapPin className="w-3 h-3 flex-shrink-0" />
-                    {clinic.address}
-                  </div>
-                </div>
-                <Badge variant={clinic.isOpen ? "success" : "secondary"}>
-                  {clinic.isOpen ? "Open" : "Closed"}
-                </Badge>
-              </div>
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
-                  <span className="font-medium text-foreground">{clinic.rating}</span>
-                </span>
-                <span className="flex items-center gap-1">
-                  <Navigation className="w-3 h-3" />
-                  {clinic.distance} km
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {clinic.hours}
-                </span>
-              </div>
-              {selected === clinic.id && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="flex gap-2 mt-3 pt-3 border-t border-border/50"
+        ) : (
+          <div className="mt-4 md:mt-0">
+            <div className="space-y-3 max-h-[420px] overflow-y-auto scrollbar-thin pr-1">
+              {clinics.map((clinic, i) => (
+                <motion.button
+                  key={clinic.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  onClick={() => setSelected(clinic.id)}
+                  className={`w-full text-left rounded-xl p-4 border transition-all shadow-sm ${
+                    selected === clinic.id
+                      ? "border-cyan-500/50 bg-cyan-500/5"
+                      : "border-border/50 hover:border-cyan-500/30 hover:bg-accent/30"
+                  }`}
                 >
-                  <Button size="sm" className="flex-1">
-                    <Navigation className="w-3 h-3" />
-                    Directions
-                  </Button>
-                  <Button size="sm" variant="outline" className="flex-1">
-                    <Phone className="w-3 h-3" />
-                    Call
-                  </Button>
-                </motion.div>
-              )}
-            </motion.button>
-          ))}
-        </div>
-      )}
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold truncate">{clinic.name}</div>
+                      <div className="text-xs text-muted-foreground truncate flex items-center gap-1 mt-0.5">
+                        <MapPin className="w-3 h-3 flex-shrink-0" />
+                        {clinic.address}
+                      </div>
+                    </div>
+                    <Badge variant={clinic.isOpen ? "success" : "secondary"}>
+                      {clinic.isOpen ? "Open" : "Closed"}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                      <span className="font-medium text-foreground">{clinic.rating}</span>
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Navigation className="w-3 h-3" />
+                      {clinic.distance} km
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {clinic.hours}
+                    </span>
+                  </div>
+                  {selected === clinic.id && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      className="flex gap-2 mt-3 pt-3 border-t border-border/50"
+                    >
+                      <Button size="sm" className="flex-1">
+                        <Navigation className="w-3 h-3" />
+                        Directions
+                      </Button>
+                      <Button size="sm" variant="outline" className="flex-1">
+                        <Phone className="w-3 h-3" />
+                        Call
+                      </Button>
+                    </motion.div>
+                  )}
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
+ 

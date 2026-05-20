@@ -39,7 +39,7 @@ export function ScanHistory({ onSelect }: ScanHistoryProps) {
     u === "low" ? "Low" : u === "medium" ? "Medium" : "High";
 
   return (
-    <div className="glass rounded-2xl p-6">
+    <div className="glass rounded-2xl p-6 shadow-lg">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-display font-bold flex items-center gap-2">
@@ -153,7 +153,7 @@ export function ScanHistory({ onSelect }: ScanHistoryProps) {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04 }}
-                className="rounded-xl border border-border/50 p-4 hover:bg-muted/20 transition-colors"
+                className="rounded-xl border border-border/50 p-4 hover:bg-muted/20 transition-colors shadow-sm"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">

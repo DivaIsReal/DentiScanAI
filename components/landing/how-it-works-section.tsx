@@ -7,30 +7,30 @@ const STEPS = [
   {
     icon: Upload,
     step: "01",
-    title: "Upload Photo",
+    title: "Unggah Foto",
     description:
-      "Ambil foto gigi langsung dari kamera HP atau upload gambar dari galeri Anda.",
+      "Ambil foto gigi langsung dari kamera HP atau unggah gambar dari galeri Anda.",
   },
   {
     icon: Cpu,
     step: "02",
-    title: "AI Analyzes",
+    title: "AI Menganalisis",
     description:
       "Model Computer Vision menganalisis citra dalam hitungan detik untuk mendeteksi kondisi.",
   },
   {
     icon: FileText,
     step: "03",
-    title: "Get Result",
+    title: "Dapatkan Hasil",
     description:
       "Dapatkan laporan lengkap dengan confidence score dan visualisasi area terdeteksi.",
   },
   {
     icon: MessageSquare,
     step: "04",
-    title: "Consult DentiBot",
+    title: "Konsultasi DentiBot",
     description:
-      "Tanya AI assistant untuk penjelasan lebih lanjut atau rekomendasi langkah berikutnya.",
+      "Tanya asisten AI untuk penjelasan lebih lanjut atau rekomendasi langkah berikutnya.",
   },
 ];
 
@@ -48,14 +48,14 @@ export function HowItWorksSection() {
           className="max-w-2xl mx-auto text-center mb-16"
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 text-xs font-medium mb-4">
-            How It Works
+            Cara Kerja
           </div>
           <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight text-balance">
-            From photo to{" "}
-            <span className="gradient-text">diagnosis</span> in seconds
+            Dari foto ke{" "}
+            <span className="gradient-text">analisis</span> dalam hitungan detik
           </h2>
           <p className="mt-4 text-lg text-muted-foreground text-balance">
-            Empat langkah sederhana untuk memahami kesehatan gigi Anda lebih dalam.
+            Empat langkah sederhana untuk memahami kesehatan gigi Anda dengan lebih baik.
           </p>
         </motion.div>
 

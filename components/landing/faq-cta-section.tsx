@@ -30,7 +30,7 @@ const FAQS = [
   },
   {
     q: "Bagaimana fitur Clinic Finder bekerja?",
-    a: "Clinic Finder menggunakan geolocation perangkat Anda untuk mencari klinik gigi terdekat melalui Google Maps API. Fitur ini diaktifkan otomatis oleh Agentic AI ketika hasil scan menunjukkan urgency tinggi.",
+    a: "Pencari Klinik menggunakan geolocation perangkat Anda untuk mencari klinik gigi terdekat melalui Google Maps API. Fitur ini diaktifkan otomatis oleh Agentic AI ketika hasil scan menunjukkan tingkat urgensi tinggi.",
   },
 ];
 
@@ -51,7 +51,7 @@ export function FAQSection() {
             FAQ
           </div>
           <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight text-balance">
-            Frequently asked questions
+            Pertanyaan yang sering diajukan
           </h2>
         </motion.div>
 
@@ -117,9 +117,9 @@ export function CTASection() {
 
           <div className="relative">
             <h2 className="font-display text-3xl md:text-5xl font-bold text-white tracking-tight mb-4 text-balance">
-              Ready to scan smarter,
+              Siap scan dengan lebih cerdas,
               <br />
-              not harder?
+              bukan lebih rumit?
             </h2>
             <p className="text-cyan-50/90 text-lg mb-8 max-w-2xl mx-auto text-balance">
               Mulai screening gigi Anda hari ini. Gratis, instan, dan didukung
@@ -128,7 +128,7 @@ export function CTASection() {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button size="lg" variant="secondary" asChild>
                 <Link href="/register">
-                  Start Scanning Free
+                  Mulai Scan Gratis
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </Button>
@@ -138,7 +138,7 @@ export function CTASection() {
                 className="text-white border-white/30"
                 asChild
               >
-                <Link href="/login">Sign In</Link>
+                <Link href="/login">Masuk</Link>
               </Button>
             </div>
           </div>

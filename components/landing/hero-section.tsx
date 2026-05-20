@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles, Activity, ShieldCheck, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ToothAnimation } from "@/components/landing/tooth-animation";
 
 export function HeroSection() {
   return (
@@ -24,7 +25,7 @@ export function HeroSection() {
             >
               <Sparkles className="w-3.5 h-3.5 text-cyan-500" />
               <span className="text-xs font-medium">
-                AI Powered • Computer Vision • Healthcare
+                Didukung AI • Computer Vision • Kesehatan
               </span>
             </motion.div>
 
@@ -34,10 +35,9 @@ export function HeroSection() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="font-display text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.05] tracking-tight text-balance"
             >
-              AI Dental Screening
+              Screening Gigi AI
               <br />
-              From Your{" "}
-              <span className="gradient-text">Smartphone</span>
+              <span className="gradient-text">Langsung Dari Ponsel</span>
             </motion.h1>
 
             <motion.p
@@ -55,16 +55,16 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="mt-8 flex flex-col sm:flex-row gap-3"
+              className="mt-8 flex flex-col sm:flex-row gap-4"
             >
-              <Button size="lg" asChild>
+              <Button size="lg" className="bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 shadow-xl shadow-cyan-500/30 hover:shadow-cyan-500/40 hover:-translate-y-1 text-white font-semibold px-12 py-6 h-auto text-lg" asChild>
                 <Link href="/register">
-                  Start Scanning
-                  <ArrowRight className="w-4 h-4" />
+                  Mulai Sekarang
+                  <ArrowRight className="w-5 h-5" />
                 </Link>
               </Button>
-              <Button size="lg" variant="glass" asChild>
-                <Link href="#how-it-works">Learn More</Link>
+              <Button size="lg" variant="glass" className="border-2 border-cyan-400/50 hover:border-cyan-400 backdrop-blur-md bg-white/10 hover:bg-white/20 dark:bg-white/[0.08] dark:hover:bg-white/[0.12] font-semibold px-12 py-6 h-auto text-lg" asChild>
+                <Link href="#how-it-works">Pelajari Lebih Lanjut</Link>
               </Button>
             </motion.div>
 
@@ -76,15 +76,15 @@ export function HeroSection() {
             >
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                <span>HIPAA-aware design</span>
+                <span>Desain aman untuk privasi</span>
               </div>
               <div className="flex items-center gap-2">
                 <Zap className="w-4 h-4 text-amber-500" />
-                <span>Instant results</span>
+                <span>Hasil instan</span>
               </div>
               <div className="flex items-center gap-2">
                 <Activity className="w-4 h-4 text-cyan-500" />
-                <span>94% accuracy</span>
+                <span>Akurasi 94%</span>
               </div>
             </motion.div>
           </div>
@@ -114,66 +114,38 @@ function DashboardMockup() {
       <div className="relative glass-strong rounded-3xl p-6 shadow-2xl">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <div className="text-xs text-muted-foreground">Scan Result · #2847</div>
-            <div className="font-semibold mt-0.5">Dental Analysis Report</div>
+            <div className="text-xs text-muted-foreground">Hasil Scan · #2847</div>
+            <div className="font-semibold mt-0.5">Laporan Analisis Gigi</div>
           </div>
           <div className="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-xs font-medium flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Live
+            Aktif
           </div>
         </div>
 
         {/* Tooth illustration */}
-        <div className="relative aspect-[4/3] rounded-2xl bg-gradient-to-br from-cyan-500/10 via-sky-500/5 to-blue-500/10 overflow-hidden mb-5 border border-cyan-500/10">
-          <svg viewBox="0 0 200 150" className="absolute inset-0 w-full h-full">
-            <defs>
-              <linearGradient id="hero-tooth" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
-                <stop offset="100%" stopColor="#bae6fd" stopOpacity="0.7" />
-              </linearGradient>
-            </defs>
-            <g transform="translate(100, 75)">
-              <path
-                d="M0,-40 C-25,-40 -35,-25 -35,-10 C-35,5 -30,20 -25,35 C-22,42 -18,45 -12,40 C-8,35 -5,25 0,25 C5,25 8,35 12,40 C18,45 22,42 25,35 C30,20 35,5 35,-10 C35,-25 25,-40 0,-40 Z"
-                fill="url(#hero-tooth)"
-                stroke="#22d3ee"
-                strokeWidth="1.5"
-                opacity="0.9"
-              />
-              {/* Detection markers */}
-              <circle cx="-12" cy="-15" r="3" fill="#f59e0b" className="animate-pulse" />
-              <circle cx="14" cy="-8" r="3" fill="#ef4444" className="animate-pulse" />
-              <line x1="-12" y1="-15" x2="-45" y2="-25" stroke="#f59e0b" strokeWidth="1" strokeDasharray="2 2" />
-              <line x1="14" y1="-8" x2="50" y2="-15" stroke="#ef4444" strokeWidth="1" strokeDasharray="2 2" />
-            </g>
-            {/* Scan line */}
-            <motion.line
-              x1="0"
-              x2="200"
-              y1="0"
-              y2="0"
-              stroke="#22d3ee"
-              strokeWidth="2"
-              animate={{ y1: [0, 150, 0], y2: [0, 150, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-              opacity="0.6"
-            />
-          </svg>
+        <div className="relative aspect-[4/3] rounded-2xl bg-gradient-to-br from-[#e8f9f9] via-[#d0f2ff] to-[#e6f0ff] overflow-hidden mb-5 border border-cyan-500/20">
+          <ToothAnimation />
         </div>
 
         {/* Metrics */}
         <div className="grid grid-cols-3 gap-3 mb-5">
           {[
-            { label: "Cavity", value: "82%", color: "from-amber-500 to-orange-500" },
-            { label: "Tartar", value: "67%", color: "from-rose-500 to-red-500" },
-            { label: "Healthy", value: "78%", color: "from-emerald-500 to-teal-500" },
-          ].map((m) => (
-            <div key={m.label} className="glass rounded-xl p-3">
+            { label: "Karies", value: "82%", color: "from-amber-500 to-orange-500" },
+            { label: "Karang", value: "67%", color: "from-rose-500 to-red-500" },
+            { label: "Sehat", value: "78%", color: "from-emerald-500 to-teal-500" },
+          ].map((m, i) => (
+            <motion.div
+              key={m.label}
+              className="glass rounded-xl p-3"
+              animate={{ opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: i * 0.3 }}
+            >
               <div className="text-xs text-muted-foreground mb-1">{m.label}</div>
               <div className={`text-lg font-bold bg-gradient-to-r ${m.color} bg-clip-text text-transparent`}>
                 {m.value}
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 
@@ -184,7 +156,7 @@ function DashboardMockup() {
           </div>
           <div className="text-xs leading-relaxed">
             <span className="font-medium">DentiBot:</span>{" "}
-            Mild caries detected. Recommend professional checkup within 2 weeks.
+            Terdeteksi karies ringan. Disarankan periksa profesional dalam 2 minggu.
           </div>
         </div>
       </div>
@@ -200,7 +172,7 @@ function DashboardMockup() {
             <Activity className="w-4 h-4 text-white" />
           </div>
           <div>
-            <div className="text-xs text-muted-foreground">AI Confidence</div>
+            <div className="text-xs text-muted-foreground">Kepercayaan AI</div>
             <div className="text-sm font-bold">94.2%</div>
           </div>
         </div>
@@ -216,7 +188,7 @@ function DashboardMockup() {
             <ShieldCheck className="w-4 h-4 text-white" />
           </div>
           <div>
-            <div className="text-xs text-muted-foreground">Patients</div>
+            <div className="text-xs text-muted-foreground">Pasien</div>
             <div className="text-sm font-bold">12,847+</div>
           </div>
         </div>

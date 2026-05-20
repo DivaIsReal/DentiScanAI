@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   LayoutDashboard,
   ScanLine,
@@ -10,14 +10,13 @@ import {
   MapPin,
   Settings,
   LogOut,
-  Sparkles,
 } from "lucide-react";
 import { Logo } from "@/components/layout/logo";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Scan Teeth", href: "/dashboard?tab=scan", icon: ScanLine },
+  { label: "Dashboard", href: "/dashboard?tab=dashboard", icon: LayoutDashboard },
+  { label: "Scan Teeth", href: "/dashboard?tab=scan&step=1", icon: ScanLine },
   { label: "Scan History", href: "/dashboard?tab=history", icon: History },
   { label: "Clinic Finder", href: "/dashboard?tab=clinics", icon: MapPin },
   { label: "DentiBot", href: "/chatbot", icon: MessageSquare },
@@ -25,7 +24,13 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
+
+  function getTabFromHref(href: string) {
+    const m = href.match(/[?&]tab=([^&]+)/);
+    return m ? m[1] : null;
+  }
 
   async function handleLogout() {
     await fetch("/api/auth/me", { method: "DELETE" });
@@ -40,9 +45,15 @@ export function Sidebar() {
 
       <nav className="flex-1 px-3 space-y-1">
         {NAV_ITEMS.map((item) => {
-          const isActive =
-            pathname === item.href ||
-            (item.href.startsWith("/dashboard") && pathname === "/dashboard");
+          let isActive = false;
+
+          if (item.href.startsWith("/dashboard")) {
+            const currentTab = searchParams?.get("tab");
+            const itemTab = getTabFromHref(item.href);
+            isActive = pathname === "/dashboard" && itemTab && itemTab === currentTab;
+          } else {
+            isActive = pathname === item.href;
+          }
           return (
             <Link
               key={item.label}
@@ -62,18 +73,6 @@ export function Sidebar() {
       </nav>
 
       <div className="p-3 space-y-1">
-        <div className="glass rounded-xl p-4 mb-3 relative overflow-hidden">
-          <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-cyan-500/20 blur-2xl" />
-          <Sparkles className="w-5 h-5 text-cyan-500 mb-2" />
-          <div className="text-xs font-semibold mb-1">Upgrade Plan</div>
-          <div className="text-xs text-muted-foreground mb-3">
-            Get unlimited scans & priority AI
-          </div>
-          <button className="text-xs font-medium text-cyan-600 dark:text-cyan-400 hover:underline">
-            Learn more →
-          </button>
-        </div>
-
         <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-all">
           <Settings className="w-4 h-4" />
           Settings

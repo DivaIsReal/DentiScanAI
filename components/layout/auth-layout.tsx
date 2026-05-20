@@ -36,18 +36,17 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
             transition={{ duration: 0.6 }}
           >
             <h2 className="font-display text-4xl xl:text-5xl font-bold leading-tight mb-6 text-balance">
-              AI-powered dental wellness, right from your phone.
+              Kesehatan gigi bertenaga AI, langsung dari ponsel Anda.
             </h2>
             <p className="text-cyan-100/80 text-lg mb-10 max-w-md">
-              Join thousands using DentiScan for early detection and personalized
-              oral care recommendations.
+              Bergabunglah dengan ribuan pengguna DentiScan untuk deteksi dini dan rekomendasi perawatan gigi yang dipersonalisasi.
             </p>
 
             <div className="space-y-4">
               {[
-                { icon: Activity, label: "94.2% accuracy", desc: "On validated medical dataset" },
-                { icon: Sparkles, label: "Instant AI analysis", desc: "Results in under 2 seconds" },
-                { icon: ShieldCheck, label: "Privacy first", desc: "End-to-end encrypted data" },
+                { icon: Activity, label: "Akurasi 94.2%", desc: "Pada dataset medis tervalidasi" },
+                { icon: Sparkles, label: "Analisis AI Instan", desc: "Hasil dalam waktu kurang dari 2 detik" },
+                { icon: ShieldCheck, label: "Privasi Utama", desc: "Data terenkripsi end-to-end" },
               ].map((item, i) => (
                 <motion.div
                   key={item.label}
@@ -82,7 +81,7 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back home
+            Kembali ke beranda
           </Link>
           <div className="lg:hidden">
             <Logo iconOnly />

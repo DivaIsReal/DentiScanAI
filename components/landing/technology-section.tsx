@@ -15,10 +15,10 @@ export function TechnologySection() {
             transition={{ duration: 0.6 }}
           >
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 text-xs font-medium mb-4">
-              AI Technology
+              Teknologi AI
             </div>
             <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight mb-6 text-balance">
-              Powered by{" "}
+              Didukung{" "}
               <span className="gradient-text">Deep Learning</span> & Agentic AI
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
@@ -31,17 +31,17 @@ export function TechnologySection() {
                 {
                   icon: Layers,
                   title: "MobileNetV2 / YOLOv8",
-                  desc: "Arsitektur ringan & cepat, optimal untuk web",
+                  desc: "Arsitektur ringan dan cepat, optimal untuk web",
                 },
                 {
                   icon: Network,
                   title: "Agentic AI dengan LangChain",
-                  desc: "Reasoning otomatis & trigger Clinic Finder",
+                  desc: "Penalaran otomatis dan pemicu Clinic Finder",
                 },
                 {
                   icon: Database,
-                  title: "Trained on Medical Dataset",
-                  desc: "Dataset terverifikasi dari Kaggle & Roboflow",
+                  title: "Dilatih pada Dataset Medis",
+                  desc: "Dataset terverifikasi dari Kaggle dan Roboflow",
                 },
               ].map((item) => (
                 <div key={item.title} className="flex items-start gap-4">
@@ -82,9 +82,9 @@ function TechArchitectureMockup() {
             { label: "INPUT", value: "tooth_image.jpg", color: "text-cyan-500" },
             { label: "PREPROCESS", value: "resize(224, 224) → normalize", color: "text-sky-500" },
             { label: "MODEL", value: "MobileNetV2 + Detection Head", color: "text-blue-500" },
-            { label: "OUTPUT", value: '{ caries: 0.82, tartar: 0.67 }', color: "text-emerald-500" },
-            { label: "AGENT", value: "LangChain.reason() → action", color: "text-violet-500" },
-            { label: "RESPONSE", value: "Personalized treatment plan", color: "text-pink-500" },
+            { label: "OUTPUT", value: '{ karies: 0.82, karang: 0.67 }', color: "text-emerald-500" },
+            { label: "AGENT", value: "LangChain.reason() → aksi", color: "text-violet-500" },
+            { label: "RESPONSE", value: "Rencana perawatan personal", color: "text-pink-500" },
           ].map((line, i) => (
             <motion.div
               key={line.label}
@@ -107,9 +107,9 @@ function TechArchitectureMockup() {
 
         <div className="mt-6 pt-6 border-t border-border/30 grid grid-cols-3 gap-3">
           {[
-            { label: "Latency", value: "~1.2s" },
-            { label: "Accuracy", value: "94.2%" },
-            { label: "F1-Score", value: "0.91" },
+            { label: "Latensi", value: "~1.2s" },
+            { label: "Akurasi", value: "94.2%" },
+            { label: "Skor F1", value: "0.91" },
           ].map((m) => (
             <div key={m.label} className="text-center">
               <div className="text-2xl font-bold gradient-text font-display">
@@ -129,7 +129,7 @@ function TechArchitectureMockup() {
 const BENEFITS = [
   "Deteksi dini sebelum nyeri muncul",
   "Hemat biaya pengobatan jangka panjang",
-  "Akses 24/7 dari smartphone Anda",
+  "Akses 24/7 dari ponsel Anda",
   "Konsultasi AI tanpa antrean dokter",
   "Lacak progres kesehatan gigi",
   "Rekomendasi klinik berdasarkan kondisi",
@@ -146,7 +146,7 @@ export function BenefitsSection() {
           <div className="relative grid md:grid-cols-2 gap-12 items-center">
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 text-xs font-medium mb-4">
-                Why DentiScan?
+                Kenapa DentiScan?
               </div>
               <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-balance">
                 Pergeseran paradigma dari{" "}

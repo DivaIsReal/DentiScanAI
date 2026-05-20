@@ -111,19 +111,19 @@ export function AuthForm({ mode }: AuthFormProps) {
     >
       <div className="mb-8">
         <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight">
-          {mode === "login" ? "Welcome back" : "Create account"}
+          {mode === "login" ? "Selamat datang kembali" : "Buat akun"}
         </h1>
         <p className="text-muted-foreground mt-2">
           {mode === "login"
-            ? "Sign in to continue your dental wellness journey."
-            : "Start your AI-powered dental screening today."}
+            ? "Masuk untuk melanjutkan perjalanan kesehatan gigi Anda."
+            : "Mulai screening gigi bertenaga AI hari ini."}
         </p>
       </div>
 
       <div className="space-y-4">
         {mode === "register" && (
           <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name</Label>
+            <Label htmlFor="fullName">Nama Lengkap</Label>
             <div className="relative">
               <UserIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -155,14 +155,14 @@ export function AuthForm({ mode }: AuthFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">Kata Sandi</Label>
           <div className="relative">
             <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               id="password"
               type={showPassword ? "text" : "password"}
               className="pl-10 pr-10"
-              placeholder="Min. 6 characters"
+              placeholder="Min. 6 karakter"
               value={form.password}
               onChange={(e) => update("password", e.target.value)}
               required
@@ -180,14 +180,14 @@ export function AuthForm({ mode }: AuthFormProps) {
 
         {mode === "register" && (
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Label htmlFor="confirmPassword">Konfirmasi Kata Sandi</Label>
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 id="confirmPassword"
                 type={showConfirm ? "text" : "password"}
                 className="pl-10 pr-10"
-                placeholder="Repeat password"
+                placeholder="Ulangi kata sandi"
                 value={form.confirmPassword}
                 onChange={(e) => update("confirmPassword", e.target.value)}
                 required
@@ -213,24 +213,24 @@ export function AuthForm({ mode }: AuthFormProps) {
                 onChange={(e) => update("remember", e.target.checked)}
                 className="w-4 h-4 rounded border-input accent-cyan-500"
               />
-              <span>Remember me</span>
+              <span>Ingat saya</span>
             </label>
             <Link
               href="#"
               className="text-sm text-cyan-600 dark:text-cyan-400 hover:underline"
             >
-              Forgot password?
+              Lupa kata sandi?
             </Link>
           </div>
         )}
 
-        <Button type="submit" size="lg" className="w-full mt-2" disabled={loading}>
+        <Button type="submit" size="lg" className="w-full mt-4 py-3 font-semibold h-auto" disabled={loading}>
           {loading ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : mode === "login" ? (
-            "Sign In"
+            "Masuk"
           ) : (
-            "Create Account"
+            "Buat Akun"
           )}
         </Button>
 
@@ -240,7 +240,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           </div>
           <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-background px-3 text-muted-foreground tracking-wider">
-              Or continue with
+              Atau lanjutkan dengan
             </span>
           </div>
         </div>
@@ -269,22 +269,22 @@ export function AuthForm({ mode }: AuthFormProps) {
         <p className="text-center text-sm text-muted-foreground mt-6">
           {mode === "login" ? (
             <>
-              Don&apos;t have an account?{" "}
+              Belum punya akun?{" "}
               <Link
                 href="/register"
                 className="text-cyan-600 dark:text-cyan-400 hover:underline font-medium"
               >
-                Sign up
+                Daftar
               </Link>
             </>
           ) : (
             <>
-              Already have an account?{" "}
+              Sudah punya akun?{" "}
               <Link
                 href="/login"
                 className="text-cyan-600 dark:text-cyan-400 hover:underline font-medium"
               >
-                Sign in
+                Masuk
               </Link>
             </>
           )}

@@ -43,7 +43,7 @@ export function UploadArea({ onScan, loading }: UploadAreaProps) {
   };
 
   return (
-    <div className="glass rounded-2xl p-6">
+    <div className="glass rounded-2xl p-6 shadow-lg">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="font-semibold flex items-center gap-2">

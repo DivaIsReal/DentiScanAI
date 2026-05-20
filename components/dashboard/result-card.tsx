@@ -45,7 +45,7 @@ export function ResultCard({ result }: ResultCardProps) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass rounded-2xl p-6 space-y-5"
+      className="glass rounded-2xl p-6 space-y-5 shadow-lg"
     >
       <div className="flex items-start justify-between">
         <div>

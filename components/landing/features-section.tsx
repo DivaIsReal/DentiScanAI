@@ -13,42 +13,42 @@ import {
 const FEATURES = [
   {
     icon: ScanLine,
-    title: "AI Teeth Detection",
+    title: "Deteksi Gigi AI",
     description:
       "Deteksi karies, karang gigi, dan gingivitis menggunakan model Computer Vision yang dilatih pada ribuan citra medis.",
     accent: "from-cyan-500 to-sky-500",
   },
   {
     icon: Bot,
-    title: "Interactive AI Chatbot",
+    title: "Chatbot AI Interaktif",
     description:
       "DentiBot menjawab pertanyaan seputar kesehatan gigi dan memberikan saran perawatan personal berdasarkan hasil scan.",
     accent: "from-violet-500 to-purple-500",
   },
   {
     icon: MapPin,
-    title: "Clinic Finder",
+    title: "Pencari Klinik",
     description:
-      "Rekomendasi klinik gigi terdekat dengan rating, jarak, dan status buka — otomatis aktif saat terdeteksi kondisi darurat.",
+      "Rekomendasi klinik gigi terdekat dengan rating, jarak, dan status buka - otomatis aktif saat terdeteksi kondisi darurat.",
     accent: "from-rose-500 to-pink-500",
   },
   {
     icon: History,
-    title: "Scan History",
+    title: "Riwayat Scan",
     description:
       "Lacak progres kesehatan gigi Anda dari waktu ke waktu. Bandingkan hasil scan dan lihat perkembangan secara visual.",
     accent: "from-amber-500 to-orange-500",
   },
   {
     icon: Brain,
-    title: "Agentic Reasoning",
+    title: "Penalaran Agen AI",
     description:
-      "AI tidak hanya mendeteksi — ia melakukan reasoning dan mengambil aksi otomatis berdasarkan tingkat keparahan.",
+      "AI tidak hanya mendeteksi - ia melakukan penalaran dan mengambil aksi otomatis berdasarkan tingkat keparahan.",
     accent: "from-emerald-500 to-teal-500",
   },
   {
     icon: Shield,
-    title: "Privacy First",
+    title: "Privasi Utama",
     description:
       "Data citra dan hasil scan dienkripsi dan disimpan secara aman. Anda memiliki kontrol penuh atas data pribadi.",
     accent: "from-blue-500 to-indigo-500",
@@ -67,15 +67,15 @@ export function FeaturesSection() {
           className="max-w-2xl mx-auto text-center mb-16"
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 text-xs font-medium mb-4">
-            Features
+            Fitur
           </div>
           <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight text-balance">
-            Everything you need for{" "}
-            <span className="gradient-text">dental wellness</span>
+            Semua yang Anda butuhkan untuk{" "}
+            <span className="gradient-text">kesehatan gigi</span>
           </h2>
           <p className="mt-4 text-lg text-muted-foreground text-balance">
             DentiScan menggabungkan Computer Vision, LLM, dan Agentic AI dalam
-            satu platform yang clean dan mudah digunakan.
+            satu platform yang rapi dan mudah digunakan.
           </p>
         </motion.div>
 

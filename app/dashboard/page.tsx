@@ -15,6 +15,9 @@ import { UploadArea } from "@/components/dashboard/upload-area";
 import { ResultCard } from "@/components/dashboard/result-card";
 import { ClinicFinder } from "@/components/dashboard/clinic-finder";
 import { ScanHistory } from "@/components/dashboard/scan-history";
+import { OverviewSection } from "@/components/dashboard/overview-section";
+import { StepIndicator } from "@/components/dashboard/step-indicator";
+import { TipsAccordion } from "@/components/dashboard/tips-accordion";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import type { ScanResult } from "@/types";
@@ -22,7 +25,8 @@ import type { ScanResult } from "@/types";
 function DashboardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const tab = searchParams.get("tab") || "scan";
+  const tab = searchParams.get("tab") || "dashboard";
+  const step = parseInt(searchParams.get("step") || "1", 10) as 1 | 2 | 3;
   const { push } = useToast();
 
   const [result, setResult] = useState<ScanResult | null>(null);
@@ -48,6 +52,7 @@ function DashboardContent() {
     if (!file) return;
     setLoading(true);
     setResult(null);
+    router.push("/dashboard?tab=scan&step=2");
 
     try {
       const formData = new FormData();
@@ -61,12 +66,14 @@ function DashboardContent() {
 
       if (data.success) {
         setResult(data.data);
+        router.push("/dashboard?tab=scan&step=3");
         push({
           type: "success",
           title: "Analisis selesai",
           description: "Hasil scan gigi Anda telah siap dilihat.",
         });
       } else {
+        router.push("/dashboard?tab=scan&step=1");
         push({
           type: "error",
           title: "Gagal melakukan analisis",
@@ -74,6 +81,7 @@ function DashboardContent() {
         });
       }
     } catch {
+      router.push("/dashboard?tab=scan&step=1");
       push({
         type: "error",
         title: "Terjadi kesalahan",
@@ -84,52 +92,133 @@ function DashboardContent() {
     }
   }
 
-  const renderScan = () => (
-    <div className="grid gap-6 xl:grid-cols-3">
-      <div className="xl:col-span-2 space-y-6">
-        <UploadArea onScan={handleScan} loading={loading} />
+  const renderOverview = () => (
+    <div className="grid gap-6 xl:grid-cols-[1fr_340px]">
+      <div className="space-y-6">
+        {/* Stats cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+        >
+          <StatCard
+            icon={ScanLine}
+            label="Total Scan"
+            value={stats.total.toString()}
+            accent="from-cyan-500 to-sky-600"
+          />
+          <StatCard
+            icon={Activity}
+            label="Skor Terakhir"
+            value={stats.lastScore ? `${stats.lastScore}` : "—"}
+            suffix={stats.lastScore ? "/100" : ""}
+            accent="from-emerald-500 to-teal-600"
+          />
+          <StatCard
+            icon={TrendingUp}
+            label="Status"
+            value={
+              stats.lastScore >= 80
+                ? "Sehat"
+                : stats.lastScore >= 60
+                  ? "Cukup"
+                  : stats.lastScore > 0
+                    ? "Perlu Perhatian"
+                    : "—"
+            }
+            accent="from-amber-500 to-orange-600"
+          />
+          <StatCard
+            icon={Sparkles}
+            label="AI Confidence"
+            value="94.2%"
+            accent="from-violet-500 to-fuchsia-600"
+          />
+        </motion.div>
 
-        <AnimatePresence mode="wait">
-          {result && (
+        {/* Overview content */}
+        <OverviewSection />
+      </div>
+
+      {/* Right sidebar */}
+      <div className="space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <ClinicFinder />
+        </motion.div>
+      </div>
+    </div>
+  );
+
+  const renderScan = () => (
+    <div className="space-y-6">
+      {/* Step indicator */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <StepIndicator currentStep={step} />
+      </motion.div>
+
+      <div className="grid gap-6 xl:grid-cols-3">
+        <div className="xl:col-span-2 space-y-6">
+          {/* Step 1: Upload */}
+          {step === 1 && (
             <motion.div
-              key={result.id}
-              initial={{ opacity: 0, y: 20 }}
+              key="step1"
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.25 }}
+              className="space-y-6"
+            >
+              <UploadArea onScan={handleScan} loading={loading} />
+              <TipsAccordion />
+            </motion.div>
+          )}
+
+          {/* Step 2: Analyzing */}
+          {step === 2 && (
+            <motion.div
+              key="step2"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+              className="flex items-center justify-center py-20"
+            >
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-full bg-cyan-500/20 flex items-center justify-center mx-auto mb-4">
+                  <Loader2 className="w-8 h-8 animate-spin text-cyan-500" />
+                </div>
+                <h3 className="font-semibold text-lg mb-1">AI sedang menganalisis...</h3>
+                <p className="text-muted-foreground text-sm">
+                  Mohon tunggu beberapa saat untuk hasil yang akurat
+                </p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step 3: Results */}
+          {step === 3 && result && (
+            <motion.div
+              key="step3"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
             >
               <ResultCard result={result} />
             </motion.div>
           )}
-        </AnimatePresence>
+        </div>
 
-        {!result && !loading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="glass rounded-2xl p-6"
-          >
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-sky-600 flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold mb-1">Tips untuk hasil terbaik</h3>
-                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                  <li>Gunakan pencahayaan yang cukup dan merata</li>
-                  <li>Buka mulut lebar dan arahkan kamera ke gigi</li>
-                  <li>Pastikan foto tidak buram atau gelap</li>
-                  <li>Format yang didukung: JPG, PNG, WebP (maks 10MB)</li>
-                </ul>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </div>
-
-      <div className="space-y-6">
-        <ClinicFinder />
+        <div className="space-y-6">
+          <ClinicFinder />
+        </div>
       </div>
     </div>
   );
@@ -154,17 +243,19 @@ function DashboardContent() {
             ? "Lihat semua hasil scan kesehatan gigi Anda."
             : tab === "clinics"
               ? "Temukan klinik gigi terbaik di sekitar Anda."
-              : "Mulai screening kesehatan gigi Anda dengan AI."}
+              : tab === "scan"
+                ? "Lakukan scanning gigi kesehatan Anda dengan AI."
+                : "Lihat ringkasan kesehatan gigi dan riwayat scan Anda."}
         </p>
       </motion.div>
 
-      {/* Quick stats - only on scan tab */}
-      {tab === "scan" && (
+      {/* Quick stats - only on scan tab for step 1 */}
+      {tab === "scan" && step === 1 && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+            className="grid grid-cols-2 lg:grid-cols-4 gap-4 shadow-lg"
         >
           <StatCard
             icon={ScanLine}
@@ -202,25 +293,6 @@ function DashboardContent() {
         </motion.div>
       )}
 
-      {/* Loading overlay */}
-      {loading && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 bg-background/60 backdrop-blur-sm z-50 flex items-center justify-center"
-        >
-          <div className="glass-strong rounded-2xl px-8 py-6 flex items-center gap-4">
-            <Loader2 className="w-6 h-6 animate-spin text-cyan-500" />
-            <div>
-              <p className="font-semibold">AI sedang menganalisis...</p>
-              <p className="text-xs text-muted-foreground">
-                Mohon tunggu beberapa saat
-              </p>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
       {/* Tab content */}
       <AnimatePresence mode="wait">
         <motion.div
@@ -230,12 +302,13 @@ function DashboardContent() {
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.25 }}
         >
+          {tab === "dashboard" && renderOverview()}
           {tab === "scan" && renderScan()}
           {tab === "history" && (
             <ScanHistory
               onSelect={(scan) => {
                 setResult(scan);
-                router.push("/dashboard?tab=scan");
+                router.push("/dashboard?tab=scan&step=3");
               }}
             />
           )}
@@ -248,12 +321,12 @@ function DashboardContent() {
       </AnimatePresence>
 
       {/* Bottom CTA to chatbot */}
-      {tab === "scan" && result && (
+      {tab === "scan" && step === 3 && result && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="glass rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+            className="glass rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg"
         >
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-sky-600 flex items-center justify-center flex-shrink-0">
@@ -270,7 +343,7 @@ function DashboardContent() {
           </div>
           <Button
             onClick={() => router.push("/chatbot")}
-            className="bg-gradient-to-r from-cyan-500 to-sky-600 text-white"
+            className="bg-cyan-600 text-white hover:bg-cyan-500"
           >
             Tanya DentiBot
             <ArrowRight className="w-4 h-4 ml-2" />
@@ -291,7 +364,7 @@ interface StatCardProps {
 
 function StatCard({ icon: Icon, label, value, suffix, accent }: StatCardProps) {
   return (
-    <div className="glass rounded-2xl p-4 hover:scale-[1.02] transition-transform">
+    <div className="glass rounded-2xl p-4 hover:scale-[1.02] transition-transform shadow-lg">
       <div className="flex items-center gap-3">
         <div
           className={`w-10 h-10 rounded-xl bg-gradient-to-br ${accent} flex items-center justify-center flex-shrink-0`}
