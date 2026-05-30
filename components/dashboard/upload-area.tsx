@@ -92,20 +92,11 @@ export function UploadArea({ onScan, loading }: UploadAreaProps) {
         audio: false,
       });
 
+      console.log("[camera] getUserMedia stream:", stream);
       streamRef.current = stream;
       setCameraOpen(true);
-
-      window.setTimeout(async () => {
-        if (!videoRef.current) return;
-        videoRef.current.srcObject = stream;
-        try {
-          await videoRef.current.play();
-          setCameraReady(true);
-        } catch {
-          setCameraReady(true);
-        }
-      }, 0);
     } catch (error) {
+      console.error("[camera] openCamera error:", error);
       setCameraOpen(false);
       setCameraError(resolveCameraError(error));
     } finally {
@@ -213,6 +204,39 @@ export function UploadArea({ onScan, loading }: UploadAreaProps) {
       }
     };
   }, [stopCameraStream]);
+
+  useEffect(() => {
+    if (!cameraOpen) return;
+
+    const video = videoRef.current;
+    const stream = streamRef.current;
+
+    console.log("[camera] video element:", video);
+    console.log("[camera] active stream:", stream);
+
+    if (!video || !stream) {
+      return;
+    }
+
+    video.srcObject = stream;
+    video.autoplay = true;
+    video.playsInline = true;
+    video.muted = true;
+
+    const playVideo = async () => {
+      try {
+        await video.play();
+        console.log("[camera] video.play() succeeded");
+        setCameraReady(true);
+      } catch (error) {
+        console.error("[camera] video.play() failed:", error);
+        setCameraReady(true);
+        setCameraError("Kamera sudah aktif, tetapi browser gagal memutar video. Coba klik tombol buka kamera lagi.");
+      }
+    };
+
+    void playVideo();
+  }, [cameraOpen]);
 
   return (
     <div className="glass rounded-2xl p-6 shadow-lg">
