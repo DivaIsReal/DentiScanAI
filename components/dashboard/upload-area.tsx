@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useDropzone } from "react-dropzone";
 import { motion } from "framer-motion";
 import { Upload, Camera, X, Loader2, ScanLine, Sparkles } from "lucide-react";
@@ -238,6 +239,59 @@ export function UploadArea({ onScan, loading }: UploadAreaProps) {
     void playVideo();
   }, [cameraOpen]);
 
+  const cameraModal = cameraOpen
+    ? createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center p-3 sm:p-4">
+          <div className="w-full max-w-2xl rounded-3xl bg-card border border-border shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
+              <div>
+                <h3 className="font-semibold">Buka Kamera</h3>
+                <p className="text-xs text-muted-foreground">Arahkan kamera ke gigi lalu ambil foto.</p>
+              </div>
+              <Button type="button" variant="ghost" size="icon" onClick={closeCamera}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <div className="p-4 space-y-4 overflow-y-auto">
+              <div className="relative aspect-video rounded-2xl overflow-hidden bg-black border border-border">
+                <video
+                  ref={videoRef}
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  muted
+                  playsInline
+                />
+                {!cameraReady && (
+                  <div className="absolute inset-0 flex items-center justify-center text-white bg-black/40">
+                    <Loader2 className="w-8 h-8 animate-spin" />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2 sm:justify-between">
+                <div className="text-xs text-muted-foreground">
+                  {cameraLoading
+                    ? "Menyiapkan kamera..."
+                    : "Pastikan pencahayaan cukup dan izin kamera sudah diberikan."}
+                </div>
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" onClick={closeCamera} disabled={loading}>
+                    Tutup
+                  </Button>
+                  <Button type="button" onClick={() => void captureFromVideo()} disabled={loading || cameraLoading || !cameraReady}>
+                    <Camera className="w-4 h-4" />
+                    Ambil Foto
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )
+    : null;
+
   return (
     <div className="glass rounded-2xl p-6 shadow-lg">
       <div className="flex items-center justify-between mb-4">
@@ -384,55 +438,7 @@ export function UploadArea({ onScan, loading }: UploadAreaProps) {
         </div>
       )}
 
-      {cameraOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl rounded-3xl bg-card border border-border shadow-2xl overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-              <div>
-                <h3 className="font-semibold">Buka Kamera</h3>
-                <p className="text-xs text-muted-foreground">Arahkan kamera ke gigi lalu ambil foto.</p>
-              </div>
-              <Button type="button" variant="ghost" size="icon" onClick={closeCamera}>
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-
-            <div className="p-4 space-y-4">
-              <div className="relative aspect-video rounded-2xl overflow-hidden bg-black border border-border">
-                <video
-                  ref={videoRef}
-                  className="w-full h-full object-cover"
-                  autoPlay
-                  muted
-                  playsInline
-                />
-                {!cameraReady && (
-                  <div className="absolute inset-0 flex items-center justify-center text-white bg-black/40">
-                    <Loader2 className="w-8 h-8 animate-spin" />
-                  </div>
-                )}
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-2 sm:justify-between">
-                <div className="text-xs text-muted-foreground">
-                  {cameraLoading
-                    ? "Menyiapkan kamera..."
-                    : "Pastikan pencahayaan cukup dan izin kamera sudah diberikan."}
-                </div>
-                <div className="flex gap-2">
-                  <Button type="button" variant="outline" onClick={closeCamera} disabled={loading}>
-                    Tutup
-                  </Button>
-                  <Button type="button" onClick={() => void captureFromVideo()} disabled={loading || cameraLoading || !cameraReady}>
-                    <Camera className="w-4 h-4" />
-                    Ambil Foto
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {cameraModal}
     </div>
   );
 }
