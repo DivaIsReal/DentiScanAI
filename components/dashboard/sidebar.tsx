@@ -50,7 +50,7 @@ export function Sidebar() {
           if (item.href.startsWith("/dashboard")) {
             const currentTab = searchParams?.get("tab");
             const itemTab = getTabFromHref(item.href);
-            isActive = pathname === "/dashboard" && itemTab && itemTab === currentTab;
+            isActive = pathname === "/dashboard" && !!itemTab && currentTab === itemTab;
           } else {
             isActive = pathname === item.href;
           }

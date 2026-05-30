@@ -65,7 +65,26 @@ const DUMMY_CLINICS: Clinic[] = [
   },
 ];
 
-export async function GET(_req: NextRequest) {
+function toRad(value: number) {
+  return (value * Math.PI) / 180;
+}
+
+function getDistanceKm(
+  fromLat: number,
+  fromLng: number,
+  toLat: number,
+  toLng: number
+) {
+  const earthRadiusKm = 6371;
+  const deltaLat = toRad(toLat - fromLat);
+  const deltaLng = toRad(toLng - fromLng);
+  const a =
+    Math.sin(deltaLat / 2) ** 2 +
+    Math.cos(toRad(fromLat)) * Math.cos(toRad(toLat)) * Math.sin(deltaLng / 2) ** 2;
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+export async function GET(req: NextRequest) {
   const auth = getAuthFromCookie();
   if (!auth) {
     return NextResponse.json(
@@ -74,8 +93,24 @@ export async function GET(_req: NextRequest) {
     );
   }
 
-  // TODO: integrate with Google Maps Places API using user lat/lng query params
-  // const lat = parseFloat(req.nextUrl.searchParams.get("lat") || "0");
-  // const lng = parseFloat(req.nextUrl.searchParams.get("lng") || "0");
+  const latParam = req.nextUrl.searchParams.get("lat");
+  const lngParam = req.nextUrl.searchParams.get("lng");
+  const lat = latParam ? Number(latParam) : null;
+  const lng = lngParam ? Number(lngParam) : null;
+
+  if (
+    typeof lat === "number" &&
+    typeof lng === "number" &&
+    Number.isFinite(lat) &&
+    Number.isFinite(lng)
+  ) {
+    const clinics = DUMMY_CLINICS.map((clinic) => ({
+      ...clinic,
+      distance: Number(getDistanceKm(lat, lng, clinic.lat, clinic.lng).toFixed(1)),
+    })).sort((a, b) => a.distance - b.distance);
+
+    return NextResponse.json({ success: true, data: clinics });
+  }
+
   return NextResponse.json({ success: true, data: DUMMY_CLINICS });
 }

@@ -75,13 +75,19 @@ export function ToothAnimation() {
           </path>
 
           {/* Scan line - FULL WIDTH */}
-          <motion.rect
-            x="-50" y="-20" width="420" height="20"
-            fill="url(#scanGrad)"
-            animate={{ y: [-20, 260, -20] }}
-            transition={{ duration: 3.5, repeat: Infinity, ease: "linear" }}
-            opacity="1"
-          />
+          <g opacity="1">
+            <g>
+              <animateTransform
+                attributeName="transform"
+                type="translate"
+                values="0 -20; 0 190; 0 -20"
+                dur="3s"
+                repeatCount="indefinite"
+              />
+              <rect x="-50" y="0" width="420" height="16" fill="url(#scanGrad)" opacity="0.75" />
+              <rect x="-50" y="7" width="420" height="2.5" fill="#67e8f9" opacity="0.95" filter="url(#glowStrong)" />
+            </g>
+          </g>
 
           {/* === MARKER KARIES (amber) === */}
           {/* Ripple */}

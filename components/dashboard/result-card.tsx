@@ -1,15 +1,18 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import {
   Sparkles,
   AlertTriangle,
   CheckCircle2,
   Activity,
   TrendingUp,
+  MessageCircle,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { ScanResult } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +21,7 @@ interface ResultCardProps {
 }
 
 export function ResultCard({ result }: ResultCardProps) {
+  const router = useRouter();
   const urgencyMap = {
     low: {
       label: "Low Risk",
@@ -101,7 +105,7 @@ export function ResultCard({ result }: ResultCardProps) {
               {result.overallScore}%
             </div>
             <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
-              Healthy
+              {result.conditions.find((c) => c.detected)?.name || "Healthy"}
             </div>
           </div>
         </div>
@@ -151,7 +155,7 @@ export function ResultCard({ result }: ResultCardProps) {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-sky-600 flex items-center justify-center flex-shrink-0">
             <Sparkles className="w-4 h-4 text-white" />
           </div>
-          <div className="space-y-2 text-sm">
+          <div className="space-y-2 text-sm flex-1">
             <div>
               <div className="font-semibold text-cyan-700 dark:text-cyan-300 mb-0.5">
                 Summary
@@ -167,6 +171,15 @@ export function ResultCard({ result }: ResultCardProps) {
           </div>
         </div>
       </div>
+
+      {/* Chat button */}
+      <Button
+        onClick={() => router.push(`/chatbot?scanId=${result.id}`)}
+        className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700"
+      >
+        <MessageCircle className="w-4 h-4 mr-2" />
+        Chat dengan DentiBot
+      </Button>
     </motion.div>
   );
 }

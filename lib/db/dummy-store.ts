@@ -54,6 +54,11 @@ class ScanStore {
   list(userId: string): ScanResult[] {
     return this.scans.get(userId) || [];
   }
+
+  getById(scanId: string, userId: string): ScanResult | undefined {
+    const scans = this.scans.get(userId) || [];
+    return scans.find((s) => s.id === scanId);
+  }
 }
 
 class ChatStore {

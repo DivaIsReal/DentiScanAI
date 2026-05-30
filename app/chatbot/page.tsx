@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send,
@@ -12,11 +13,16 @@ import {
   Stethoscope,
   Apple,
   ShieldCheck,
+  AlertTriangle,
+  CheckCircle2,
 } from "lucide-react";
 import { ChatBubble, TypingBubble } from "@/components/chatbot/chat-bubble";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
-import type { ChatMessage } from "@/types";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import type { ChatMessage, ScanResult } from "@/types";
 
 const SUGGESTIONS = [
   { icon: Activity, text: "Apa itu karies?" },
@@ -26,13 +32,53 @@ const SUGGESTIONS = [
 ];
 
 export default function ChatbotPage() {
+  const searchParams = useSearchParams();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [initLoading, setInitLoading] = useState(true);
+  const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const { push } = useToast();
+  const { toast } = useToast();
+
+  // Load scan result if scanId provided
+  useEffect(() => {
+    if (!searchParams) {
+      console.log("⚠️ searchParams not ready yet");
+      return;
+    }
+
+    const scanId = searchParams.get("scanId");
+    console.log("🔍 Current URL:", window.location.href);
+    console.log("🔍 scanId from params:", scanId);
+
+    if (!scanId) {
+      console.log("⚠️ No scanId in URL");
+      return;
+    }
+
+    console.log("📡 Fetching scan:", scanId);
+    fetch(`/api/scan/${scanId}`)
+      .then((r) => {
+        console.log("📡 Response status:", r.status);
+        return r.json();
+      })
+      .then((d) => {
+        console.log("📡 Response data:", d);
+        if (d.success && d.data) {
+          console.log("✅ Scan loaded successfully:", d.data);
+          setScanResult(d.data);
+        } else {
+          console.warn("⚠️ Response not success:", d.error);
+          toast("error", d.error || "Gagal memuat hasil scan");
+        }
+      })
+      .catch((err) => {
+        console.error("❌ Fetch error:", err);
+        toast("error", "Gagal memuat hasil scan: " + err.message);
+      });
+  }, [searchParams, toast]);
 
   // Load history on mount
   useEffect(() => {
@@ -97,19 +143,17 @@ export default function ChatbotPage() {
       } else {
         // remove the optimistic user message on failure
         setMessages((prev) => prev.filter((m) => m.id !== userMsg.id));
-        push({
-          type: "error",
-          title: "Gagal mengirim pesan",
-          description: data.error || "Silakan coba lagi.",
-        });
+        toast(
+          "error",
+          data.error || "Gagal mengirim pesan. Silakan coba lagi."
+        );
       }
     } catch {
       setMessages((prev) => prev.filter((m) => m.id !== userMsg.id));
-      push({
-        type: "error",
-        title: "Terjadi kesalahan",
-        description: "Tidak dapat terhubung ke server.",
-      });
+      toast(
+        "error",
+        "Terjadi kesalahan. Tidak dapat terhubung ke server."
+      );
     } finally {
       setLoading(false);
     }
@@ -120,12 +164,9 @@ export default function ChatbotPage() {
     try {
       await fetch("/api/chat", { method: "DELETE" });
       setMessages([]);
-      push({
-        type: "success",
-        title: "Percakapan dihapus",
-      });
+      toast("success", "Percakapan dihapus");
     } catch {
-      push({ type: "error", title: "Gagal menghapus" });
+      toast("error", "Gagal menghapus percakapan");
     }
   }
 
@@ -137,6 +178,14 @@ export default function ChatbotPage() {
   }
 
   const isEmpty = messages.length === 0 && !loading;
+
+  function sendScanResultToChat() {
+    if (!scanResult) return;
+
+    const scanMessage = `Hasil scan terbaru saya: ${scanResult.conditions.find((c) => c.detected)?.name || "Healthy"} (${scanResult.overallScore}%). Confidence: ${scanResult.confidenceScore}%. Detail: ${scanResult.summary}. Rekomendasi: ${scanResult.recommendation}`;
+
+    sendMessage(scanMessage);
+  }
 
   return (
     <div className="h-full flex flex-col max-w-4xl mx-auto w-full">
@@ -180,16 +229,166 @@ export default function ChatbotPage() {
             <Loader2 className="w-5 h-5 animate-spin mr-2" />
             <span className="text-sm">Memuat percakapan...</span>
           </div>
-        ) : isEmpty ? (
-          <EmptyState onSuggestion={sendMessage} />
         ) : (
           <div className="space-y-5 pb-4">
-            <AnimatePresence initial={false}>
-              {messages.map((msg) => (
-                <ChatBubble key={msg.id} message={msg} />
-              ))}
-              {loading && <TypingBubble key="typing" />}
-            </AnimatePresence>
+            {/* Scan result card if available */}
+            {scanResult && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="glass rounded-2xl p-6 space-y-5 shadow-lg border border-cyan-500/20"
+              >
+                {/* Header */}
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-cyan-500" />
+                      Hasil Scan Terbaru
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Confidence {scanResult.confidenceScore}%
+                    </p>
+                  </div>
+                  <Badge
+                    variant={
+                      scanResult.urgency === "high"
+                        ? "destructive"
+                        : scanResult.urgency === "medium"
+                          ? "warning"
+                          : "success"
+                    }
+                  >
+                    {scanResult.urgency === "high"
+                      ? "High Risk"
+                      : scanResult.urgency === "medium"
+                        ? "Medium Risk"
+                        : "Low Risk"}
+                  </Badge>
+                </div>
+
+                {/* Score ring + conditions */}
+                <div className="flex items-center gap-6">
+                  <div className="relative w-24 h-24 flex-shrink-0">
+                    <svg className="absolute inset-0 -rotate-90" viewBox="0 0 100 100">
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="42"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="8"
+                        className="text-muted/30"
+                      />
+                      <motion.circle
+                        cx="50"
+                        cy="50"
+                        r="42"
+                        fill="none"
+                        stroke="url(#scoreGradient)"
+                        strokeWidth="8"
+                        strokeLinecap="round"
+                        strokeDasharray={`${(scanResult.overallScore / 100) * 264} 264`}
+                        initial={{ strokeDasharray: "0 264" }}
+                        animate={{
+                          strokeDasharray: `${(scanResult.overallScore / 100) * 264} 264`,
+                        }}
+                        transition={{ duration: 1, ease: "easeOut" }}
+                      />
+                      <defs>
+                        <linearGradient id="scoreGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#22d3ee" />
+                          <stop offset="100%" stopColor="#0284c7" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <div className="text-xl font-bold gradient-text font-display">
+                        {scanResult.overallScore}%
+                      </div>
+                      <div className="text-[9px] text-muted-foreground uppercase tracking-wider">
+                        {scanResult.conditions.find((c) => c.detected)?.name || "Healthy"}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 space-y-3">
+                    {scanResult.conditions
+                      .filter((c) => c.name !== "Gusi Sehat")
+                      .map((cond) => (
+                        <div key={cond.name}>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm font-medium flex items-center gap-2">
+                              <span
+                                className={cn(
+                                  "w-1.5 h-1.5 rounded-full",
+                                  cond.detected ? "bg-red-500" : "bg-emerald-500"
+                                )}
+                              />
+                              {cond.name}
+                            </span>
+                            <span className="text-xs font-semibold tabular-nums">
+                              {cond.confidence}%
+                            </span>
+                          </div>
+                          <Progress
+                            value={cond.confidence}
+                            indicatorClassName={cn(
+                              cond.detected
+                                ? cond.confidence >= 80
+                                  ? "from-red-500 to-rose-500 bg-gradient-to-r"
+                                  : "from-amber-500 to-orange-500 bg-gradient-to-r"
+                                : "from-emerald-500 to-teal-500 bg-gradient-to-r"
+                            )}
+                          />
+                        </div>
+                      ))}
+                  </div>
+                </div>
+
+                {/* Summary */}
+                <div className="rounded-xl bg-cyan-500/5 border border-cyan-500/15 p-4">
+                  <div className="text-sm space-y-2">
+                    <div className="font-semibold text-cyan-700 dark:text-cyan-300">
+                      Ringkasan
+                    </div>
+                    <p className="text-foreground/90 text-sm">{scanResult.summary}</p>
+                  </div>
+                </div>
+
+                {/* Recommendation */}
+                <div className="rounded-xl bg-blue-500/5 border border-blue-500/15 p-4">
+                  <div className="text-sm space-y-2">
+                    <div className="font-semibold text-blue-700 dark:text-blue-300">
+                      Rekomendasi
+                    </div>
+                    <p className="text-foreground/90 text-sm">{scanResult.recommendation}</p>
+                  </div>
+                </div>
+
+                {/* Send to chat button */}
+                <Button
+                  onClick={sendScanResultToChat}
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700"
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  Kirim ke Chat
+                </Button>
+              </motion.div>
+            )}
+
+            {messages.length === 0 && !scanResult ? (
+              <EmptyState onSuggestion={sendMessage} />
+            ) : (
+              <>
+                <AnimatePresence initial={false}>
+                  {messages.map((msg) => (
+                    <ChatBubble key={msg.id} message={msg} />
+                  ))}
+                  {loading && <TypingBubble key="typing" />}
+                </AnimatePresence>
+              </>
+            )}
           </div>
         )}
       </div>

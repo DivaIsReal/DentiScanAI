@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromCookie } from "@/lib/auth/jwt";
 import { connectDB } from "@/lib/db/connect";
 import { Scan } from "@/models/Scan";
-import { predictDentalConditions } from "@/lib/ai/predict";
+import { predictDentalConditions } from "@/lib/ai/dental-predict";
 import { dummyScanStore } from "@/lib/db/dummy-store";
 
 export async function POST(req: NextRequest) {
@@ -15,12 +15,22 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // In the future, parse the uploaded image from req.formData() and pass to AI
-    // const formData = await req.formData();
-    // const file = formData.get("image") as File;
-    // const buffer = Buffer.from(await file.arrayBuffer());
+    const formData = await req.formData();
+    const file = formData.get("image");
 
-    const result = await predictDentalConditions();
+    if (!(file instanceof File)) {
+      return NextResponse.json(
+        { success: false, error: "File gambar tidak ditemukan" },
+        { status: 400 }
+      );
+    }
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const result = await predictDentalConditions({
+      imageBuffer: buffer,
+      fileName: file.name,
+      mimeType: file.type,
+    });
 
     const conn = await connectDB();
     if (conn) {
@@ -28,7 +38,14 @@ export async function POST(req: NextRequest) {
         userId: auth.userId,
         ...result,
       });
-      return NextResponse.json({ success: true, data: scan });
+      const scanData = scan.toObject();
+      return NextResponse.json({
+        success: true,
+        data: {
+          ...scanData,
+          id: scanData._id.toString(),
+        },
+      });
     }
 
     const scan = dummyScanStore.create(auth.userId, result);

@@ -1,17 +1,12 @@
 /**
  * AI Prediction Service
  *
- * Current implementation: DUMMY (returns randomized but realistic results)
- * Future: swap `predictDentalConditions` with a fetch to the FastAPI endpoint
- *        exposed by the AI Engineering team.
- *
- * Expected real endpoint contract:
- *   POST {AI_API_URL}/predict
- *   body: multipart/form-data { image: File }
- *   returns: AIPredictionResult (same shape as below)
+ * This module now uses a local model trained from the DS dataset stored in the repo.
+ * The chatbot knowledge base remains below this section.
  */
 
 import type { ScanCondition } from "@/types";
+import { predictDentalImage } from "@/lib/ai/dental-model";
 
 export interface AIPredictionResult {
   overallScore: number;
@@ -22,111 +17,111 @@ export interface AIPredictionResult {
   urgency: "low" | "medium" | "high";
 }
 
-const CONDITIONS_POOL = [
-  "Karies (Cavity)",
-  "Karang Gigi (Tartar)",
-  "Gusi Sehat",
-  "Radang Gusi (Gingivitis)",
-  "Plak Berlebih",
-];
-
-function randomBetween(min: number, max: number): number {
-  return Math.round(min + Math.random() * (max - min));
-}
-
-function pickSeverity(confidence: number): "low" | "medium" | "high" {
-  if (confidence >= 80) return "high";
-  if (confidence >= 60) return "medium";
-  return "low";
-}
-
-export async function predictDentalConditions(
-  _imageData?: string | Buffer
-): Promise<AIPredictionResult> {
-  // Simulate processing latency
-  await new Promise((r) => setTimeout(r, 1500));
-
-  const cariesDetected = Math.random() > 0.4;
-  const tartarDetected = Math.random() > 0.5;
-  const gingivitisDetected = Math.random() > 0.7;
-
-  const cariesConf = cariesDetected ? randomBetween(65, 92) : randomBetween(8, 30);
-  const tartarConf = tartarDetected ? randomBetween(60, 88) : randomBetween(10, 28);
-  const gingivitisConf = gingivitisDetected ? randomBetween(55, 80) : randomBetween(5, 25);
-
-  const healthyGumScore = randomBetween(60, 95);
-
-  const conditions: ScanCondition[] = [
-    {
-      name: "Karies (Cavity)",
-      detected: cariesDetected,
-      confidence: cariesConf,
-      severity: cariesDetected ? pickSeverity(cariesConf) : "low",
-    },
-    {
-      name: "Karang Gigi (Tartar)",
-      detected: tartarDetected,
-      confidence: tartarConf,
-      severity: tartarDetected ? pickSeverity(tartarConf) : "low",
-    },
-    {
-      name: "Radang Gusi (Gingivitis)",
-      detected: gingivitisDetected,
-      confidence: gingivitisConf,
-      severity: gingivitisDetected ? pickSeverity(gingivitisConf) : "low",
-    },
-    {
-      name: "Gusi Sehat",
-      detected: healthyGumScore > 70,
-      confidence: healthyGumScore,
-      severity: "low",
-    },
-  ];
-
-  const detectedCount = conditions.filter(
-    (c) => c.detected && c.name !== "Gusi Sehat"
-  ).length;
-
-  let urgency: "low" | "medium" | "high" = "low";
-  let summary = "";
-  let recommendation = "";
-
-  if (detectedCount === 0) {
-    urgency = "low";
-    summary =
-      "Tidak ada masalah signifikan yang terdeteksi. Kondisi gigi Anda tampak sehat dengan tingkat kebersihan yang baik.";
-    recommendation =
-      "Lanjutkan rutinitas sikat gigi 2 kali sehari dan flossing. Pemeriksaan rutin ke dokter gigi setiap 6 bulan sangat dianjurkan.";
-  } else if (detectedCount === 1) {
-    urgency = "medium";
-    summary = cariesDetected
-      ? "Kemungkinan terdapat karies ringan pada gigi bagian belakang. Belum terlalu mengkhawatirkan namun perlu perhatian."
-      : "Terdeteksi adanya akumulasi yang perlu dibersihkan secara profesional.";
-    recommendation =
-      "Disarankan melakukan pemeriksaan lanjutan ke dokter gigi dalam 2-4 minggu ke depan untuk tindakan preventif.";
-  } else {
-    urgency = "high";
-    summary =
-      "Terdeteksi beberapa indikasi masalah kesehatan gigi yang memerlukan perhatian segera. Tingkat keparahan tergolong sedang hingga tinggi.";
-    recommendation =
-      "Sangat disarankan untuk segera mengunjungi dokter gigi terdekat. Klinik di sekitar Anda telah kami siapkan di tab Clinic Finder.";
+const PREDICTION_META: Record<
+  string,
+  {
+    summary: string;
+    recommendation: string;
+    urgency: "low" | "medium" | "high";
+    conditionName: string;
+    clinicFinder: boolean;
   }
+> = {
+  caries: {
+    summary:
+      "Terdeteksi indikasi karies pada gigi. Kondisi ini perlu dipantau karena berpotensi berkembang jika tidak ditangani.",
+    recommendation:
+      "Segera konsultasi ke dokter gigi untuk evaluasi lanjutan dan tindakan pencegahan agar kerusakan tidak bertambah.",
+    urgency: "high",
+    conditionName: "Karies",
+    clinicFinder: true,
+  },
+  healthy: {
+    summary:
+      "Gigi tampak sehat dengan tanda kerusakan yang minimal. Kebersihan mulut terlihat terjaga.",
+    recommendation:
+      "Pertahankan rutinitas menyikat gigi 2 kali sehari, flossing, dan pemeriksaan rutin setiap 6 bulan.",
+    urgency: "low",
+    conditionName: "Gigi Sehat",
+    clinicFinder: false,
+  },
+  karang_gigi: {
+    summary:
+      "Terdeteksi adanya penumpukan karang gigi. Scaling profesional disarankan untuk mencegah peradangan gusi.",
+    recommendation:
+      "Lakukan scaling ke dokter gigi agar karang gigi dibersihkan dan risiko radang gusi berkurang.",
+    urgency: "medium",
+    conditionName: "Karang Gigi",
+    clinicFinder: true,
+  },
+  gusi_sehat: {
+    summary:
+      "Kondisi gusi tampak sehat, tanpa tanda peradangan yang berarti.",
+    recommendation:
+      "Pertahankan kebiasaan perawatan gigi dan gusi yang sudah baik.",
+    urgency: "low",
+    conditionName: "Gusi Sehat",
+    clinicFinder: false,
+  },
+};
+
+function buildConditions(label: string, confidence: number): ScanCondition[] {
+  const names = ["Karies", "Karang Gigi", "Gigi Sehat", "Gusi Sehat"];
+  return names.map((name) => {
+    const normalized = name.toLowerCase().replace(/\s+/g, "_");
+    const detected =
+      (label === "caries" && normalized === "karies") ||
+      (label === "karang_gigi" && normalized === "karang_gigi") ||
+      (label === "healthy" && normalized === "gigi_sehat") ||
+      (label === "gusi_sehat" && normalized === "gusi_sehat");
+
+    const conditionConfidence = detected
+      ? confidence
+      : Math.max(8, Math.min(28, 100 - confidence));
+
+    return {
+      name,
+      detected,
+      confidence: conditionConfidence,
+      severity: detected ? (confidence >= 85 ? "high" : confidence >= 70 ? "medium" : "low") : "low",
+    };
+  });
+}
+
+export async function predictDentalConditions(input: {
+  imageBuffer: Buffer;
+  fileName?: string;
+  mimeType?: string;
+}): Promise<AIPredictionResult> {
+  const prediction = await predictDentalImage({ imageBuffer: input.imageBuffer });
+  const meta = PREDICTION_META[prediction.label];
 
   return {
-    overallScore: healthyGumScore,
-    confidenceScore: randomBetween(82, 96),
-    conditions,
-    summary,
-    recommendation,
-    urgency,
+    overallScore: prediction.score,
+    confidenceScore: prediction.confidence,
+    conditions: buildConditions(prediction.label, prediction.confidence),
+    summary: meta.summary,
+    recommendation: meta.recommendation,
+    urgency: meta.urgency,
   };
 }
 
 /* ============================================================
  *  CHATBOT — DentiBot
- *  Current: rule-based dummy responses
- *  Future: swap with Gemini / OpenAI / LangChain agent call
+ *  Now: Gemini AI-powered with fallback to knowledge base
  * ============================================================ */
+
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const SYSTEM_PROMPT = `Kamu adalah DentiBot, asisten kesehatan gigi AI yang membantu pengguna dengan:
+- Menjelaskan kondisi gigi (karies, karang gigi, gingivitis, plak)
+- Memberikan saran perawatan gigi harian
+- Menginterpretasi hasil scan dari DentiScan
+- Merekomendasikan kapan harus mengunjungi dokter gigi
+- Memberikan tips pencegahan penyakit gigi
+
+Selalu respons dalam bahasa Indonesia yang sopan dan ramah. Gunakan format markdown untuk membuat jawaban lebih mudah dibaca.
+Jika pengguna bertanya tentang hal yang bukan kesehatan gigi, sampaikan secara ramah bahwa itu di luar keahlian Anda tapi tawarkan info gigi yang relevan.`;
 
 const KNOWLEDGE_BASE: Record<string, string> = {
   karies: `**Karies (Gigi Berlubang)** adalah kerusakan jaringan keras gigi yang disebabkan oleh asam yang dihasilkan bakteri di dalam plak.
@@ -193,13 +188,7 @@ Jika hasil scan Anda menunjukkan urgency **HIGH**, fitur Clinic Finder kami suda
 **Frekuensi:** minimal 1x sehari, idealnya sebelum tidur.`,
 };
 
-export async function generateChatResponse(
-  userMessage: string,
-  _history?: Array<{ role: string; content: string }>
-): Promise<string> {
-  // Simulate thinking latency
-  await new Promise((r) => setTimeout(r, 800 + Math.random() * 700));
-
+function getKnowledgeBaseResponse(userMessage: string): string {
   const lower = userMessage.toLowerCase();
 
   for (const [key, response] of Object.entries(KNOWLEDGE_BASE)) {
@@ -222,7 +211,6 @@ Ada yang ingin Anda tanyakan?`;
     return "Sama-sama! Tetap jaga kesehatan gigi Anda ya. Jangan lupa untuk melakukan scan rutin dengan DentiScan. 🦷✨";
   }
 
-  // Default fallback
   return `Pertanyaan menarik! Berdasarkan basis pengetahuan medis kami:
 
 Kesehatan gigi yang baik membutuhkan kombinasi dari **kebersihan harian**, **pola makan seimbang**, dan **pemeriksaan rutin**.
@@ -235,4 +223,100 @@ Beberapa topik yang bisa saya bantu jelaskan:
 - Tentang scaling & flossing
 
 Coba tanyakan salah satunya, atau ceritakan lebih spesifik keluhan Anda. 🦷`;
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRetryableServiceUnavailable(err: unknown) {
+  if (!err) return false;
+  // SDK may throw an Error with message including status, or a custom error with status
+  try {
+    const e: any = err;
+    if (e && (e.status === 503 || e.statusCode === 503)) return true;
+    const msg = String(e.message || e);
+    if (/503|Service Unavailable/i.test(msg)) return true;
+  } catch (e) {
+    // ignore
+  }
+  return false;
+}
+
+export async function generateChatResponse(
+  userMessage: string,
+  history?: Array<{ role: string; content: string }>
+): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  // Fallback ke knowledge base kalau tidak ada API key atau error
+  if (!apiKey) {
+    return getKnowledgeBaseResponse(userMessage);
+  }
+
+  try {
+    const genAI = new GoogleGenerativeAI(apiKey);
+
+    const modelCandidates = [
+      // Prefer current Gemini model names available for this account
+      "models/gemini-2.5-flash",
+      "models/gemini-flash-latest",
+      "models/gemini-pro-latest",
+      "models/gemini-2.0-flash",
+      // Legacy fallbacks to non-Gemini models if needed
+      "models/chat-bison-001",
+      "models/text-bison-001",
+    ];
+
+    const chatHistory = (history || []).map((msg) => ({
+      role: msg.role === "assistant" ? "model" : "user",
+      parts: [{ text: msg.content }],
+    }));
+
+    let lastError: unknown = null;
+
+    for (const candidate of modelCandidates) {
+      let lastAttemptError: unknown = null;
+      const maxAttempts = 3;
+      const baseDelay = 500; // ms
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          const model = genAI.getGenerativeModel({ model: candidate });
+          const chat = model.startChat({
+            history: chatHistory,
+            systemInstruction: { role: "system", parts: [{ text: SYSTEM_PROMPT }] },
+          });
+
+          const result = await chat.sendMessage(userMessage);
+          const response = await result.response;
+          const text = response.text().trim();
+          return text || getKnowledgeBaseResponse(userMessage);
+        } catch (err) {
+          lastAttemptError = err;
+          const retryable = isRetryableServiceUnavailable(err);
+          console.error(`[DentiBot/Gemini][${candidate}] attempt ${attempt} failed`, err);
+          if (retryable && attempt < maxAttempts) {
+            const wait = baseDelay * Math.pow(2, attempt - 1);
+            console.info(`[DentiBot/Gemini][${candidate}] retrying in ${wait}ms`);
+            await sleep(wait);
+            continue; // retry same candidate
+          }
+          // not retryable or out of attempts -> break to try next candidate
+          break;
+        }
+      }
+
+      // record last error and try next candidate
+      lastError = lastAttemptError;
+      continue;
+    }
+
+    console.error("[DentiBot/Gemini] All model attempts failed", lastError);
+    return getKnowledgeBaseResponse(userMessage);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("[DentiBot/Gemini] Initialization error", message, error);
+    return getKnowledgeBaseResponse(userMessage);
+  }
 }

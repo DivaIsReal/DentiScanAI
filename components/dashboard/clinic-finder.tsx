@@ -1,92 +1,95 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Star, Phone, Clock, Navigation, Loader2 } from "lucide-react";
+import {
+  MapPin,
+  Star,
+  Phone,
+  Clock,
+  Navigation,
+  Loader2,
+  LocateFixed,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Clinic } from "@/types";
+
+const DEFAULT_CENTER = { lat: -7.7956, lng: 110.3695 };
+
+function buildOsmEmbedUrl(center: { lat: number; lng: number }) {
+  const latDelta = 0.03;
+  const lngDelta = 0.03;
+  const west = center.lng - lngDelta;
+  const south = center.lat - latDelta;
+  const east = center.lng + lngDelta;
+  const north = center.lat + latDelta;
+
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${west}%2C${south}%2C${east}%2C${north}&layer=mapnik&marker=${center.lat}%2C${center.lng}`;
+}
 
 export function ClinicFinder() {
   const [clinics, setClinics] = useState<Clinic[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string | null>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const [mapError, setMapError] = useState<string | null>(null);
-  const mapRef = useRef<HTMLDivElement | null>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const markersRef = useRef<any[]>([]);
-  const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationMessage, setLocationMessage] = useState<string | null>(null);
+
+  async function loadClinics(lat?: number, lng?: number) {
+    const params = new URLSearchParams();
+    if (typeof lat === "number" && typeof lng === "number") {
+      params.set("lat", String(lat));
+      params.set("lng", String(lng));
+    }
+
+    const response = await fetch(`/api/clinics${params.toString() ? `?${params}` : ""}`);
+    const data = await response.json();
+    if (data.success) {
+      setClinics(data.data);
+    }
+  }
 
   useEffect(() => {
-    fetch("/api/clinics")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.success) setClinics(d.data);
-      })
+    loadClinics()
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    if (!googleMapsApiKey) {
-      setMapError(
-        "Google Maps API key is not configured. Set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY in .env.local."
-      );
+  async function useMyLocation() {
+    if (!navigator.geolocation) {
+      setLocationMessage("Browser ini tidak mendukung izin lokasi.");
       return;
     }
 
-    if ((window as any).google?.maps) {
-      setMapLoaded(true);
-      return;
-    }
+    setLocationLoading(true);
+    setLocationMessage(null);
 
-    const existingScript = document.getElementById("google-maps-script");
-    if (existingScript) {
-      existingScript.addEventListener("load", () => setMapLoaded(true));
-      existingScript.addEventListener("error", () =>
-        setMapError("Failed to load Google Maps API. Check your API key and network.")
-      );
-      return;
-    }
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        setUserLocation({ lat, lng });
 
-    const script = document.createElement("script");
-    script.id = "google-maps-script";
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => setMapLoaded(true);
-    script.onerror = () =>
-      setMapError("Failed to load Google Maps API. Check your API key and network.");
-    document.head.appendChild(script);
-  }, [googleMapsApiKey]);
+        try {
+          await loadClinics(lat, lng);
+          setLocationMessage("Lokasi Anda aktif. Klinik diurutkan berdasarkan jarak.");
+        } catch {
+          setLocationMessage("Gagal memuat klinik berdasarkan lokasi Anda.");
+        } finally {
+          setLocationLoading(false);
+        }
+      },
+      () => {
+        setLocationLoading(false);
+        setLocationMessage("Izin lokasi ditolak. Menampilkan area default Yogyakarta.");
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  }
 
-  useEffect(() => {
-    if (!mapLoaded || !mapRef.current || clinics.length === 0) return;
-
-    const google = (window as any).google;
-    if (!google?.maps) return;
-
-    if (!mapInstanceRef.current) {
-      mapInstanceRef.current = new google.maps.Map(mapRef.current, {
-        center: { lat: -7.7956, lng: 110.3695 },
-        zoom: 13,
-        disableDefaultUI: true,
-      });
-    }
-
-    markersRef.current.forEach((marker) => marker.setMap(null));
-    markersRef.current = clinics.map((clinic) => {
-      return new google.maps.Marker({
-        position: { lat: clinic.lat, lng: clinic.lng },
-        map: mapInstanceRef.current,
-        title: clinic.name,
-      });
-    });
-
-    const bounds = new google.maps.LatLngBounds();
-    clinics.forEach((clinic) => bounds.extend({ lat: clinic.lat, lng: clinic.lng }));
-    mapInstanceRef.current.fitBounds(bounds, 80);
-  }, [mapLoaded, clinics]);
+  const mapCenter = userLocation ?? DEFAULT_CENTER;
+  const mapEmbedUrl = buildOsmEmbedUrl(mapCenter);
 
   return (
     <div className="glass rounded-2xl p-6 shadow-lg">
@@ -106,36 +109,60 @@ export function ClinicFinder() {
         </Badge>
       </div>
 
-      <div className="md:grid md:grid-cols-[1fr_360px] md:gap-4">
-        <div className="relative aspect-[16/8] md:aspect-auto md:min-h-[420px] rounded-2xl overflow-hidden mb-5 md:mb-0 border border-cyan-500/10">
-          <div ref={mapRef} className="absolute inset-0" />
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={useMyLocation}
+          disabled={locationLoading}
+          className="self-start"
+        >
+          {locationLoading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <LocateFixed className="w-4 h-4" />
+          )}
+          Gunakan lokasi saya
+        </Button>
+      </div>
 
-          {mapError ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-6 text-sm text-red-300 bg-slate-950/80">
-              <div className="font-semibold">Google Maps failed to load</div>
-              <div className="text-center">{mapError}</div>
-            </div>
-          ) : !mapLoaded ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-6 text-sm text-muted-foreground bg-slate-950/50">
-              <Loader2 className="w-5 h-5 animate-spin text-cyan-500" />
-              <div>Loading Google Maps…</div>
-            </div>
-          ) : null}
+      {locationMessage && (
+        <div className="mb-4 rounded-xl border border-cyan-500/15 bg-cyan-500/5 px-3 py-2 text-xs text-cyan-700 dark:text-cyan-300">
+          {locationMessage}
+        </div>
+      )}
+
+      <div className="space-y-5">
+        <div className="relative h-[320px] sm:h-[360px] rounded-2xl overflow-hidden border border-cyan-500/10 bg-slate-100">
+          <iframe
+            title="Clinic map"
+            src={mapEmbedUrl}
+            loading="lazy"
+            className="absolute inset-0 h-full w-full border-0"
+          />
+          <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-slate-950/20 via-transparent to-transparent" />
 
           <div className="absolute bottom-3 left-3 glass-strong rounded-lg px-3 py-2 text-xs">
-            <span className="font-medium">Clinic Map</span>
+            <span className="font-medium">OpenStreetMap</span>
             <div className="text-muted-foreground">
-              {mapLoaded ? "Google Maps API is active" : "Awaiting map load"}
+              {userLocation ? "Lokasi Anda aktif" : "Area default Yogyakarta"}
             </div>
           </div>
+
+          {userLocation && (
+            <div className="absolute top-3 right-3 rounded-full bg-emerald-500/15 px-3 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-300 backdrop-blur">
+              Lokasi pengguna
+            </div>
+          )}
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-10 md:py-0">
+          <div className="flex items-center justify-center py-10">
             <Loader2 className="w-5 h-5 animate-spin text-cyan-500" />
           </div>
         ) : (
-          <div className="mt-4 md:mt-0">
+          <div>
             <div className="space-y-3 max-h-[420px] overflow-y-auto scrollbar-thin pr-1">
               {clinics.map((clinic, i) => (
                 <motion.button
@@ -144,15 +171,17 @@ export function ClinicFinder() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
                   onClick={() => setSelected(clinic.id)}
-                  className={`w-full text-left rounded-xl p-4 border transition-all shadow-sm ${
+                  className={`w-full text-left rounded-xl p-4 border transition-all shadow-sm min-w-0 bg-background/70 ${
                     selected === clinic.id
                       ? "border-cyan-500/50 bg-cyan-500/5"
                       : "border-border/50 hover:border-cyan-500/30 hover:bg-accent/30"
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold truncate">{clinic.name}</div>
+                      <div className="font-semibold text-sm sm:text-base leading-tight truncate">
+                        {clinic.name}
+                      </div>
                       <div className="text-xs text-muted-foreground truncate flex items-center gap-1 mt-0.5">
                         <MapPin className="w-3 h-3 flex-shrink-0" />
                         {clinic.address}
@@ -162,25 +191,26 @@ export function ClinicFinder() {
                       {clinic.isOpen ? "Open" : "Closed"}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5 rounded-lg bg-muted/40 px-2.5 py-2">
                       <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
                       <span className="font-medium text-foreground">{clinic.rating}</span>
+                      <span>rating</span>
                     </span>
-                    <span className="flex items-center gap-1">
+                    <span className="flex items-center gap-1.5 rounded-lg bg-muted/40 px-2.5 py-2">
                       <Navigation className="w-3 h-3" />
-                      {clinic.distance} km
+                      <span className="font-medium text-foreground">{clinic.distance} km</span>
                     </span>
-                    <span className="flex items-center gap-1">
+                    <span className="flex items-center gap-1.5 rounded-lg bg-muted/40 px-2.5 py-2">
                       <Clock className="w-3 h-3" />
-                      {clinic.hours}
+                      <span className="truncate">{clinic.hours}</span>
                     </span>
                   </div>
                   {selected === clinic.id && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
-                      className="flex gap-2 mt-3 pt-3 border-t border-border/50"
+                      className="flex flex-col sm:flex-row gap-2 mt-3 pt-3 border-t border-border/50"
                     >
                       <Button size="sm" className="flex-1">
                         <Navigation className="w-3 h-3" />

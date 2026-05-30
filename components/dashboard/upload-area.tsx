@@ -8,13 +8,14 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface UploadAreaProps {
-  onScan: (file: File | null) => Promise<void>;
+  onScan: (file: File | null, debug?: boolean) => Promise<void>;
   loading?: boolean;
 }
 
 export function UploadArea({ onScan, loading }: UploadAreaProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [debug, setDebug] = useState(false);
 
   const onDrop = useCallback((accepted: File[]) => {
     const f = accepted[0];
@@ -39,7 +40,7 @@ export function UploadArea({ onScan, loading }: UploadAreaProps) {
   };
 
   const handleScan = async () => {
-    await onScan(file);
+    await onScan(file, debug);
   };
 
   return (
@@ -159,6 +160,16 @@ export function UploadArea({ onScan, loading }: UploadAreaProps) {
               </>
             )}
           </Button>
+          <div className="flex items-center gap-2 mt-2 text-xs">
+            <input
+              id="debug-toggle"
+              type="checkbox"
+              checked={debug}
+              onChange={(e) => setDebug(e.target.checked)}
+              className="w-4 h-4"
+            />
+            <label htmlFor="debug-toggle" className="text-muted-foreground">Enable debug payload</label>
+          </div>
         </div>
       )}
     </div>

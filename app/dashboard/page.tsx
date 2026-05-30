@@ -27,7 +27,7 @@ function DashboardContent() {
   const router = useRouter();
   const tab = searchParams.get("tab") || "dashboard";
   const step = parseInt(searchParams.get("step") || "1", 10) as 1 | 2 | 3;
-  const { push } = useToast();
+  const { toast } = useToast();
 
   const [result, setResult] = useState<ScanResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -48,7 +48,7 @@ function DashboardContent() {
       .catch(() => {});
   }, [result]);
 
-  async function handleScan(file: File | null) {
+  async function handleScan(file: File | null, debug = false) {
     if (!file) return;
     setLoading(true);
     setResult(null);
@@ -57,6 +57,7 @@ function DashboardContent() {
     try {
       const formData = new FormData();
       formData.append("image", file);
+      if (debug) formData.append("debug", "1");
 
       const res = await fetch("/api/scan", {
         method: "POST",
@@ -67,26 +68,23 @@ function DashboardContent() {
       if (data.success) {
         setResult(data.data);
         router.push("/dashboard?tab=scan&step=3");
-        push({
-          type: "success",
-          title: "Analisis selesai",
-          description: "Hasil scan gigi Anda telah siap dilihat.",
-        });
+        toast(
+          "success",
+          "Analisis selesai. Hasil scan gigi Anda telah siap dilihat."
+        );
       } else {
         router.push("/dashboard?tab=scan&step=1");
-        push({
-          type: "error",
-          title: "Gagal melakukan analisis",
-          description: data.error || "Silakan coba lagi.",
-        });
+        toast(
+          "error",
+          data.error || "Gagal melakukan analisis. Silakan coba lagi."
+        );
       }
     } catch {
       router.push("/dashboard?tab=scan&step=1");
-      push({
-        type: "error",
-        title: "Terjadi kesalahan",
-        description: "Tidak dapat terhubung ke server.",
-      });
+      toast(
+        "error",
+        "Terjadi kesalahan. Tidak dapat terhubung ke server."
+      );
     } finally {
       setLoading(false);
     }
@@ -313,7 +311,7 @@ function DashboardContent() {
             />
           )}
           {tab === "clinics" && (
-            <div className="max-w-3xl">
+            <div className="w-full max-w-6xl mx-auto">
               <ClinicFinder />
             </div>
           )}
