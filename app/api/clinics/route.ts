@@ -84,6 +84,76 @@ function getDistanceKm(
   return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+function buildAddress(tags: Record<string, string>) {
+  const parts = [tags["addr:street"], tags["addr:suburb"], tags["addr:city"]].filter(Boolean);
+  return parts.length ? parts.join(", ") : "Alamat tidak tersedia";
+}
+
+function normalizeClinic(item: any, userLat: number, userLng: number): Clinic | null {
+  const lat = Number(item.lat ?? item.center?.lat ?? item.geometry?.[0]?.lat);
+  const lng = Number(item.lon ?? item.center?.lon ?? item.geometry?.[0]?.lon);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+
+  const tags: Record<string, string> = item.tags || {};
+  const name = tags.name || tags["name:en"] || "Klinik Gigi";
+  const address = buildAddress(tags);
+
+  return {
+    id: String(item.id ?? `${lat}-${lng}`),
+    name,
+    address,
+    distance: Number(getDistanceKm(userLat, userLng, lat, lng).toFixed(1)),
+    rating: 4.5,
+    isOpen: true,
+    hours: tags.opening_hours || "Jam buka tidak tersedia",
+    phone: tags.phone || tags.contact_phone,
+    lat,
+    lng,
+  };
+}
+
+async function fetchClinicsFromOverpass(lat: number, lng: number) {
+  const query = `
+    [out:json][timeout:25];
+    (
+      node["amenity"="dentist"](around:5000,${lat},${lng});
+      way["amenity"="dentist"](around:5000,${lat},${lng});
+      relation["amenity"="dentist"](around:5000,${lat},${lng});
+      node["healthcare"="dentist"](around:5000,${lat},${lng});
+      way["healthcare"="dentist"](around:5000,${lat},${lng});
+      relation["healthcare"="dentist"](around:5000,${lat},${lng});
+    );
+    out center tags;
+  `;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
+
+  try {
+    const response = await fetch("https://overpass-api.de/api/interpreter", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      body: new URLSearchParams({ data: query }).toString(),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Overpass HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    const clinics = (data?.elements || [])
+      .map((item: any) => normalizeClinic(item, lat, lng))
+      .filter(Boolean)
+      .sort((a: Clinic, b: Clinic) => a.distance - b.distance)
+      .slice(0, 10);
+
+    return clinics as Clinic[];
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 export async function GET(req: NextRequest) {
   const auth = getAuthFromCookie();
   if (!auth) {
@@ -104,6 +174,16 @@ export async function GET(req: NextRequest) {
     Number.isFinite(lat) &&
     Number.isFinite(lng)
   ) {
+    try {
+      const clinics = await fetchClinicsFromOverpass(lat, lng);
+
+      if (clinics.length > 0) {
+        return NextResponse.json({ success: true, data: clinics });
+      }
+    } catch (error) {
+      console.error("[clinics][overpass]", error);
+    }
+
     const clinics = DUMMY_CLINICS.map((clinic) => ({
       ...clinic,
       distance: Number(getDistanceKm(lat, lng, clinic.lat, clinic.lng).toFixed(1)),

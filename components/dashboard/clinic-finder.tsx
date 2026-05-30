@@ -50,46 +50,65 @@ export function ClinicFinder() {
     }
   }
 
-  useEffect(() => {
-    loadClinics()
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+  function loadDefaultClinics() {
+    setUserLocation(null);
+    return loadClinics(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
+  }
 
-  async function useMyLocation() {
+  function requestLocation(promptedByUser = false) {
     if (!navigator.geolocation) {
-      setLocationMessage("Browser ini tidak mendukung izin lokasi.");
-      return;
+      setLocationMessage("Browser ini tidak mendukung lokasi. Menggunakan lokasi default.");
+      return loadDefaultClinics();
     }
 
     setLocationLoading(true);
-    setLocationMessage(null);
+    setLocationMessage(promptedByUser ? "Meminta izin lokasi..." : "Mengambil lokasi Anda...");
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        setUserLocation({ lat, lng });
+    return new Promise<void>((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          setUserLocation({ lat, lng });
 
-        try {
-          await loadClinics(lat, lng);
-          setLocationMessage("Lokasi Anda aktif. Klinik diurutkan berdasarkan jarak.");
-        } catch {
-          setLocationMessage("Gagal memuat klinik berdasarkan lokasi Anda.");
-        } finally {
+          try {
+            await loadClinics(lat, lng);
+            setLocationMessage("Lokasi Anda aktif. Klinik diurutkan berdasarkan jarak.");
+          } catch {
+            setLocationMessage("Gagal memuat klinik berdasarkan lokasi Anda. Menggunakan lokasi default.");
+            await loadDefaultClinics();
+          } finally {
+            setLocationLoading(false);
+            resolve();
+          }
+        },
+        async () => {
           setLocationLoading(false);
-        }
-      },
-      () => {
-        setLocationLoading(false);
-        setLocationMessage("Izin lokasi ditolak. Menampilkan area default Yogyakarta.");
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-    );
+          setLocationMessage("Izin lokasi ditolak. Menggunakan lokasi default.");
+          await loadDefaultClinics();
+          resolve();
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      );
+    });
   }
+
+  useEffect(() => {
+    requestLocation(false)
+      .catch(() => {
+        setLocationMessage("Menggunakan lokasi default.");
+        return loadDefaultClinics();
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const mapCenter = userLocation ?? DEFAULT_CENTER;
   const mapEmbedUrl = buildOsmEmbedUrl(mapCenter);
+  const locationBadgeLabel = userLocation
+    ? "Lokasi pengguna"
+    : locationLoading
+      ? "Mendeteksi lokasi"
+      : "Lokasi default";
 
   return (
     <div className="glass rounded-2xl p-6 shadow-lg">
@@ -105,7 +124,7 @@ export function ClinicFinder() {
         </div>
         <Badge variant="secondary">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse" />
-          Yogyakarta
+          {locationBadgeLabel}
         </Badge>
       </div>
 
@@ -114,7 +133,7 @@ export function ClinicFinder() {
           type="button"
           variant="outline"
           size="sm"
-          onClick={useMyLocation}
+          onClick={() => requestLocation(true)}
           disabled={locationLoading}
           className="self-start"
         >
@@ -133,6 +152,13 @@ export function ClinicFinder() {
         </div>
       )}
 
+      {locationLoading && (
+        <div className="mb-4 rounded-xl border border-cyan-500/15 bg-cyan-500/5 px-3 py-2 text-xs text-cyan-700 dark:text-cyan-300 flex items-center gap-2">
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          Mengambil lokasi Anda untuk mencari klinik terdekat...
+        </div>
+      )}
+
       <div className="space-y-5">
         <div className="relative h-[320px] sm:h-[360px] rounded-2xl overflow-hidden border border-cyan-500/10 bg-slate-100">
           <iframe
@@ -146,7 +172,7 @@ export function ClinicFinder() {
           <div className="absolute bottom-3 left-3 glass-strong rounded-lg px-3 py-2 text-xs">
             <span className="font-medium">OpenStreetMap</span>
             <div className="text-muted-foreground">
-              {userLocation ? "Lokasi Anda aktif" : "Area default Yogyakarta"}
+              {userLocation ? "Lokasi Anda aktif" : "Menggunakan lokasi default"}
             </div>
           </div>
 
