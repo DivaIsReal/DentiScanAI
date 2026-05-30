@@ -21,10 +21,10 @@ export async function GET(
 
     const conn = await connectDB();
     if (conn) {
-      const scan = await Scan.findById(scanId).lean();
+      const scan = (await Scan.findById(scanId).lean()) as any;
 
       // Verify ownership - scan must belong to current user
-      if (!scan || scan.userId.toString() !== auth.userId) {
+      if (!scan || (scan.userId?.toString?.() || scan.userId) !== auth.userId) {
         return NextResponse.json(
           { success: false, error: "Scan not found or unauthorized" },
           { status: 404 }
