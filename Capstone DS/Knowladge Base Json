@@ -1,0 +1,220 @@
+{
+  "project": "DentiScan",
+  "type": "Dental AI Knowledge Base",
+  "version": "2.0",
+
+  "dental_conditions": [
+
+    {
+      "condition_id": "caries",
+
+      "name": "Dental Caries (Gigi Berlubang)",
+
+      "definition": "Kerusakan enamel gigi akibat aktivitas bakteri yang menghasilkan asam dan merusak struktur gigi.",
+
+      "symptoms": [
+        "Nyeri saat makan manis, panas, atau dingin",
+        "Lubang pada gigi",
+        "Sensitivitas tinggi",
+        "Perubahan warna gigi (coklat/kehitaman)"
+      ],
+
+      "causes": [
+        "Plak bakteri",
+        "Konsumsi gula berlebih",
+        "Kebersihan mulut yang buruk",
+        "Jarang menyikat gigi"
+      ],
+
+      "risk_factors": [
+        "Tidak rutin sikat gigi",
+        "Sering konsumsi makanan manis",
+        "Tidak melakukan pemeriksaan gigi rutin"
+      ],
+
+      "treatment": [
+        "Tambal gigi (filling)",
+        "Perawatan saluran akar jika parah",
+        "Pembersihan karies oleh dokter gigi"
+      ],
+
+      "prevention": [
+        "Sikat gigi minimal 2 kali sehari",
+        "Gunakan pasta gigi berfluoride",
+        "Kurangi konsumsi gula",
+        "Kontrol rutin ke dokter gigi setiap 6 bulan"
+      ],
+
+      "recommendation": "Segera konsultasi ke dokter gigi untuk mencegah kerusakan lebih lanjut.",
+
+      "severity": "medium",
+      "urgency_level": "moderate",
+
+      "trigger_clinic_finder": true,
+
+      "ai_mapping": {
+        "model_label": "caries",
+        "confidence_threshold": 0.75
+      },
+
+      "medical_reference": [
+        "WHO Oral Health Reports",
+        "Journal of Dentistry (2022)"
+      ]
+    },
+
+    {
+      "condition_id": "healthy_teeth",
+
+      "name": "Healthy Teeth (Gigi Sehat)",
+
+      "definition": "Kondisi gigi normal tanpa tanda kerusakan, infeksi, atau penumpukan plak berlebih.",
+
+      "symptoms": [
+        "Tidak ada nyeri",
+        "Tidak ada lubang pada gigi",
+        "Warna gigi normal",
+        "Gusi tidak berdarah"
+      ],
+
+      "causes": [
+        "Kebersihan mulut yang baik",
+        "Pola makan seimbang",
+        "Perawatan gigi rutin"
+      ],
+
+      "maintenance": [
+        "Sikat gigi 2 kali sehari",
+        "Gunakan benang gigi (flossing)",
+        "Pemeriksaan rutin ke dokter gigi"
+      ],
+
+      "prevention": [
+        "Jaga kebersihan mulut setiap hari",
+        "Kurangi konsumsi gula",
+        "Gunakan obat kumur jika diperlukan"
+      ],
+
+      "recommendation": "Pertahankan kebiasaan baik untuk menjaga kesehatan gigi.",
+
+      "severity": "none",
+      "urgency_level": "low",
+
+      "trigger_clinic_finder": false,
+
+      "ai_mapping": {
+        "model_label": "healthy",
+        "confidence_threshold": 0.75
+      },
+
+      "medical_reference": [
+        "WHO Oral Health Guidelines"
+      ]
+    },
+
+    {
+      "condition_id": "dental_calculus",
+
+      "name": "Dental Calculus (Karang Gigi)",
+
+      "definition": "Penumpukan plak yang mengeras pada permukaan gigi akibat mineralisasi dan kurangnya kebersihan mulut.",
+
+      "symptoms": [
+        "Permukaan gigi terasa kasar",
+        "Penumpukan kuning atau coklat pada gigi",
+        "Bau mulut",
+        "Gusi mudah berdarah"
+      ],
+
+      "causes": [
+        "Plak yang tidak dibersihkan",
+        "Jarang melakukan scaling",
+        "Kebersihan mulut buruk"
+      ],
+
+      "risk_factors": [
+        "Merokok",
+        "Jarang menyikat gigi",
+        "Tidak pernah scaling",
+        "Konsumsi kopi atau teh berlebihan"
+      ],
+
+      "treatment": [
+        "Scaling oleh dokter gigi",
+        "Pembersihan plak dan karang gigi"
+      ],
+
+      "prevention": [
+        "Sikat gigi rutin",
+        "Gunakan dental floss",
+        "Scaling berkala setiap 6 bulan"
+      ],
+
+      "recommendation": "Disarankan melakukan scaling untuk mencegah radang gusi dan infeksi lanjutan.",
+
+      "severity": "medium",
+      "urgency_level": "moderate",
+
+      "trigger_clinic_finder": true,
+
+      "ai_mapping": {
+        "model_label": "karang_gigi",
+        "confidence_threshold": 0.75
+      },
+
+      "medical_reference": [
+        "WHO Oral Health Guidelines",
+        "American Dental Association"
+      ]
+    },
+
+    {
+      "condition_id": "healthy_gums",
+
+      "name": "Healthy Gums (Gusi Sehat)",
+
+      "definition": "Kondisi gusi normal tanpa tanda peradangan, pembengkakan, atau infeksi.",
+
+      "symptoms": [
+        "Gusi berwarna pink",
+        "Tidak berdarah",
+        "Tidak bengkak",
+        "Tidak nyeri"
+      ],
+
+      "causes": [
+        "Kebersihan mulut yang baik",
+        "Perawatan gigi dan gusi rutin"
+      ],
+
+      "maintenance": [
+        "Sikat gigi secara rutin",
+        "Gunakan benang gigi",
+        "Kontrol rutin ke dokter gigi"
+      ],
+
+      "prevention": [
+        "Menjaga kebersihan mulut",
+        "Menghindari penumpukan plak",
+        "Menggunakan obat kumur bila diperlukan"
+      ],
+
+      "recommendation": "Pertahankan kebiasaan perawatan gigi dan gusi untuk menjaga kesehatan mulut.",
+
+      "severity": "none",
+      "urgency_level": "low",
+
+      "trigger_clinic_finder": false,
+
+      "ai_mapping": {
+        "model_label": "gusi_sehat",
+        "confidence_threshold": 0.75
+      },
+
+      "medical_reference": [
+        "WHO Oral Health Guidelines"
+      ]
+    }
+
+  ]
+}
