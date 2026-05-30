@@ -26,11 +26,48 @@ export async function POST(req: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const result = await predictDentalConditions({
-      imageBuffer: buffer,
-      fileName: file.name,
-      mimeType: file.type,
-    });
+
+    let result;
+    const aiApiUrl = (process.env.AI_API_URL || "").trim();
+
+    if (aiApiUrl) {
+      // Forward ke FastAPI Railway
+      try {
+        const forwardUrl = aiApiUrl.replace(/\/$/, "") + "/predict";
+        const forwardForm = new FormData();
+        forwardForm.append("image", new Blob([buffer], { type: file.type }), file.name);
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 30_000);
+
+        const res = await fetch(forwardUrl, {
+          method: "POST",
+          body: forwardForm as any,
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+
+        const json = await res.json();
+        if (!json.success) {
+          throw new Error(json.error || "AI service error");
+        }
+        result = json.data;
+      } catch (e: any) {
+        console.error("[scan][forward]", e);
+        const isAbort = e?.name === "AbortError" || /aborted|timeout/i.test(String(e?.message || ""));
+        return NextResponse.json(
+          { success: false, error: isAbort ? "Request ke AI service timeout" : "Gagal meneruskan ke AI service" },
+          { status: 502 }
+        );
+      }
+    } else {
+      // Fallback lokal
+      result = await predictDentalConditions({
+        imageBuffer: buffer,
+        fileName: file.name,
+        mimeType: file.type,
+      });
+    }
 
     const conn = await connectDB();
     if (conn) {
