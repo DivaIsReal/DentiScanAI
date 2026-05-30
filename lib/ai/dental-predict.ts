@@ -173,14 +173,14 @@ export async function predictDentalConditionsDebug(
 
   const base = await predictDentalConditions(input);
 
-  const method = debug.model.classifier ? "classifier" : (debug.distances && debug.distances.length ? "knn" : "centroid");
+  const method = debug.distances && debug.distances.length ? "knn" : "centroid";
 
   return {
     ...base,
     debug: {
       embeddingSize: debug.embeddingSize,
       distances: debug.distances.map((d) => ({ label: d.label, distance: d.distance, count: d.count })),
-      classifierPresent: Boolean(debug.model.classifier),
+      classifierPresent: false,
       method: method as any,
     },
   };
